@@ -5,7 +5,7 @@ import {NavigationHookAfter} from "vue-router"
  */
 export const afterEach: NavigationHookAfter = (to) => {
     if (to.meta.title) {
-        document.title = to.meta.title + "-星知"
+        document.title = "星知-" + to.meta.title
     } else {
         document.title = "星知"
     }

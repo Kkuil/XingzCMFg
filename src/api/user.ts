@@ -1,51 +1,61 @@
 import request from "@/utils/request"
-import ErrorTypeFuc from "@/utils/ErrorTypeFuc"
+import MD5 from "@/utils/MD5.ts";
 
 /**
- * 用户使用账号登录接口
+ * @description 用户使用账号登录接口
  * @param param0 API.LoginParams
  * @returns Promise<object>
  */
-export async function loginWithAccount({ username, password, captcha }: API.AccountLoginParams): Promise<object> {
-    const { status, msg, data, errorType }: API.Result = await request({
+export async function loginWithAccount({username, password}: API.AccountLoginParams): Promise<object> {
+    return await request({
         url: "/user-login-account",
         method: "POST",
         data: {
             username,
-            password,
-            captcha
+            password: MD5.encode(password as string),
         }
     })
-    if (status < 200 || status >= 300 || data) {
-        ErrorTypeFuc({
-            type: errorType,
-            msg,
-            redirectTo: "/login"
-        })
-    }
-    return data
 }
 
 /**
- * 用户使用手机号登录接口
+ * @description 获取验证码接口
  * @param param0 API.LoginParams
  * @returns Promise<object>
  */
-export async function registryWithPhone({ phone, sms }: API.PhoneRegistryParams): Promise<object> {
-    const { status, msg, data, errorType }: API.Result = await request({
-        url: "/user-login-phone",
+export async function getSms(phone: string): Promise<object> {
+    return await request({
+        url: "/user-sms",
+        method: "GET",
+        params: {
+            phone
+        }
+    })
+}
+
+/**
+ * @description 用户使用手机号登录接口
+ * @param param0 API.LoginParams
+ * @returns Promise<object>
+ */
+export async function registryWithPhone({phone, sms}: API.PhoneRegistryParams): Promise<object> {
+    return await request({
+        url: "/user-registry-phone",
         method: "POST",
         data: {
             phone,
             sms
         }
     })
-    if (status < 200 || status >= 300 || data) {
-        ErrorTypeFuc({
-            type: errorType,
-            msg,
-            redirectTo: "/login"
-        })
-    }
-    return data
+}
+
+/**
+ * @description 获取用户信息
+ * @param param0 string
+ * @returns Promise<API.Result>
+ */
+export async function getUserInfo(id: string): Promise<API.Result> {
+    return await request({
+        method: "GET",
+        url: `/user/${id}`
+    })
 }

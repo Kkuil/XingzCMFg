@@ -11,15 +11,27 @@
     "eslint": "npx eslint ./src"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
+    "@headlessui/vue": "^1.7.13",
+    "@heroicons/vue": "^2.0.18",
+    "@vueup/vue-quill": "^1.0.0-alpha.40",
     "axios": "^1.4.0",
     "crypto-js": "^4.1.1",
     "element-plus": "^2.3.5",
+    "nprogress": "^0.2.0",
     "pinia": "^2.1.3",
+    "quill": "^1.3.6",
+    "quill-blot-formatter": "^1.0.5",
+    "quill-image-uploader": "^1.3.0",
+    "ts-node": "^10.9.1",
     "vue": "^3.2.47",
+    "vue-drag-verify2": "^1.2.0",
     "vue-router": "^4.2.1"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",
+    "@types/nprogress": "^0.2.0",
+    "@types/quill": "^2.0.10",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@typescript-eslint/parser": "^5.59.6",
     "@vitejs/plugin-vue": "^4.1.0",

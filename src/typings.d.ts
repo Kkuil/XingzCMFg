@@ -20,6 +20,7 @@ declare namespace API {
         password?: string;
         captcha?: string;
     }
+
     /**
      * 手机号登录参数
      */
@@ -27,26 +28,50 @@ declare namespace API {
         phone: string;
         sms: string;
     }
+
+    /**
+     * 错误枚举
+     */
     enum ErrorType {
         /**
-        * 静默控制台输出
-        */
+         * 静默控制台输出
+         */
         SILENT,
         /**
-            * 警告
-            */
+         * 警告
+         */
         WARN_MESSAGE,
         /**
-            * 错误
-            */
+         * 错误
+         */
         ERROR_MESSAGE,
         /**
-            * 弹窗通知
-            */
+         * 弹窗通知
+         */
         NOTIFICATION,
         /**
-            * 重定向
-            */
+         * 重定向
+         */
         REDIRECT
+    }
+
+    /**
+     * 获取列表数据统一的请求格式
+     */
+    type ListRequestParams = {
+        params?: any,
+        filter?: { createdTime?: string, modifiedTime?: string },
+        sort?: Record<string, SortOrder>,
+        page?: { current?: number, pageSize?: number }
+    }
+
+    /**
+     * 获取列表数据统一的响应格式
+     */
+    type ListResponseParams = {
+        list: Array;
+        current: number;
+        pageSize: number;
+        total: number;
     }
 }
