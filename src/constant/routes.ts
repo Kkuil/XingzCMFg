@@ -69,6 +69,22 @@ export const routes: RouteRecordRaw[] = [
                         },
                         component: import("@/pages/Home/views/VIP/index.vue")
                     },
+                    {
+                        path: "greedy-snake",
+                        name: "greedy-snake",
+                        meta: {
+                            title: "贪吃蛇"
+                        },
+                        component: import("@/pages/Home/views/GreedySnake/index.vue")
+                    },
+                    {
+                        path: "tetris",
+                        name: "tetris",
+                        meta: {
+                            title: "俄罗斯方块"
+                        },
+                        component: import("@/pages/Home/views/Tetris/index.vue")
+                    }
                 ]
             },
             {

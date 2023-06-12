@@ -17,3 +17,8 @@ export const TOKEN_IN_HEADER_KEY = "xingz_cm_user_token"
  * 手机号正则表达式
  */
 export const PHONE_REG = /1[3-9]\d{9}/
+
+/**
+ * 存于请求头中的sign key值
+ */
+export const SIGN_KEY_IN_HEADER = "x-api-sign"

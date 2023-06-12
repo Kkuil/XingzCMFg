@@ -6,8 +6,6 @@ import {CircleClose, CircleCloseFilled, Search} from "@element-plus/icons-vue"
 import {getUserInfo} from "@/api/user.ts"
 import {ElMessage} from "element-plus"
 
-const $router = useRouter()
-
 // websocket地址
 const WsAddr = import.meta.env.VITE_WS_ADDR
 

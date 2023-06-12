@@ -7,31 +7,38 @@ import {
     Right,
 } from "@element-plus/icons-vue"
 import {state} from "@/store"
-import {ref, watch} from "vue"
+import {reactive, ref, watch} from "vue"
 import {TOKEN_IN_HEADER_KEY} from "@/constant/auth.ts";
-
-// 是否登录
-const isLogin = ref<boolean>(false)
-
-watch(() => state.UserAuthState.userInfo.userInfo, (value) => {
-    isLogin.value = !!state.UserAuthState.userInfo.userInfo?.id
-}, {
-    immediate: true,
-    deep: true
-})
-
-const navigation = [
-    {name: "主页", path: "/xingz-cm"},
-    {name: "问答区", path: "/xingz-cm/question-answer-area"},
-    {name: "自习室", path: "/xingz-cm/study-room"},
-    {name: "聊天室", path: "/xingz-cm/chat-room"},
-    {name: "ChatGPT", path: "/xingz-cm/chat-gpt"},
-    {name: "会员", path: "/xingz-cm/vip"}
-]
+import Navigation from "@/components/Navigation/index.vue"
 
 const $router = useRouter()
 const $route = useRoute()
 
+const navigation = reactive([
+    {name: "主页", path: "/xingz-cm"},
+    {
+        name: "互动区",
+        isShowSelect: false,
+        children: [
+            {name: "问答区", path: "/xingz-cm/question-answer-area"},
+            {name: "自习室", path: "/xingz-cm/study-room"},
+            {name: "聊天室", path: "/xingz-cm/chat-room"},
+        ]
+    },
+    {
+        name: "休息区",
+        isShowSelect: false,
+        children: [
+            {name: "俄罗斯方块", path: "/xingz-cm/tetris"},
+            {name: "贪吃蛇", path: "/xingz-cm/greedy-snake"},
+        ]
+    },
+    {name: "ChatGPT", path: "/xingz-cm/chat-gpt"},
+    {name: "会员", path: "/xingz-cm/vip"}
+])
+
+// 是否登录
+const isLogin = ref<boolean>(false)
 // 搜索数据
 const searchData = ref<string>("")
 // 是否处于撰写文章页
@@ -44,18 +51,26 @@ const isWriting = ref<boolean>(false)
 const isOpenOperation = ref(false)
 
 watch(() => $route, (route) => {
-    if (route.name === "write-article") {
-        isWriting.value = true
-    }
+    isWriting.value = route.name === "write-article"
 }, {
     immediate: true,
     deep: true
 })
 
+watch(() => state.UserAuthState.userInfo.userInfo, (value) => {
+    isLogin.value = !!state.UserAuthState.userInfo.userInfo?.id
+}, {
+    immediate: true,
+    deep: true
+})
+
+const toggleShowSelect = (index: number, isShowSelect: boolean) => {
+    navigation[index].isShowSelect = isShowSelect
+}
 </script>
 
 <template>
-    <nav class="nav w-screen flex items-center justify-between px-4 border-b-[1px] border-[gray]">
+    <nav class="nav w-screen flex items-center justify-between px-4 border-b-[1px] border-[gray] z-[999]">
         <!-- logo -->
         <img
             src="../../../assets/images/logo-nav.png"
@@ -66,48 +81,32 @@ watch(() => $route, (route) => {
         />
         <!-- 导航栏 -->
         <div class="navigation items-center justify-around z-[999] hidden md:flex">
-            <div
-                v-for="item in navigation"
-                :key="item.path"
-                @click="$router.push(item.path)"
-                class="
-                    h-[40px]
-                    px-4
-                    font-semibold
-                    text-md
-                    transition-all
-                    cursor-pointer
-                    hover:bg-[#efefef]
-                    hover:rounded-lg
-                    rounded-lg
-                    flex-center
-                    mx-2
-                "
-                :class="$route.path === item.path ? 'text-[#5d93bb] bg-[#efefef]' : ''"
-            >
-                {{ item.name }}
-            </div>
+            <Navigation
+                :navigation="navigation"
+                trigger="click"
+                @toggleShowSelect="toggleShowSelect"
+            />
         </div>
         <!-- 搜索 -->
         <div class="
-                    search
-                    w-[250px]
-                    2xl:w-[300px]
-                    h-[35px]
-                    rounded-md
-                    overflow-hidden
-                    transition-all
-                    border-[1px]
-                    border-[#ccc]
-                    xl:ml-[30px]
-                    2xl:ml-[100px]
-                    cursor-pointer
-                    hover:shadow-[#5d93bb]
-                    md:hidden
-                    xl:flex
-                    sm:flex
-                    hidden
-                "
+                search
+                w-[250px]
+                2xl:w-[300px]
+                h-[35px]
+                rounded-md
+                overflow-hidden
+                transition-all
+                border-[1px]
+                border-[#ccc]
+                xl:ml-[30px]
+                2xl:ml-[100px]
+                cursor-pointer
+                hover:shadow-[#5d93bb]
+                md:hidden
+                xl:flex
+                sm:flex
+                hidden
+            "
         >
             <div class="search-input relative flex-[75%] h-full flex items-center px-4">
                 <el-icon>
@@ -152,6 +151,7 @@ watch(() => $route, (route) => {
                 cursor-pointer
                 hover:bg-opacity-70
             "
+            @click="$router.push({ name: 'write-article' })"
         >
             <i class="iconfont icon-yumaobi text-[#ccc]"></i>
             <span v-if="!isWriting" class="block md:hidden xl:block">写文章</span>
@@ -185,12 +185,16 @@ watch(() => $route, (route) => {
                         >
                             去登录
                         </el-dropdown-item>
-                        <el-dropdown-item v-if="isLogin" :icon="Right" @click="() => {
-                            localStorage.removeItem(TOKEN_IN_HEADER_KEY)
-                            $router.push({
-                                name: 'login'
-                             })
-                        }">退出登录
+                        <el-dropdown-item
+                            v-if="isLogin"
+                            :icon="Right"
+                            @click="() => {
+                                $router.push({
+                                    name: 'login'
+                                 })
+                                localStorage.removeItem(TOKEN_IN_HEADER_KEY)
+                            }"
+                        >退出登录
                         </el-dropdown-item>
                     </el-dropdown-menu>
                 </template>

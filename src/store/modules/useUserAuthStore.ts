@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import {auth} from "@/api/auth.ts";
+import {auth} from "@/api/auth.ts"
 
 const useUserAuthStore = defineStore("UserAuth", {
     state: (): { userInfo?: USER.UserInfo } => {

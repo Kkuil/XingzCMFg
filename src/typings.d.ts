@@ -9,7 +9,7 @@ declare namespace API {
         status: number,
         msg: string,
         data: object,
-        errorType: number
+        type: MsgType
     }
 
     /**
@@ -32,7 +32,7 @@ declare namespace API {
     /**
      * 错误枚举
      */
-    enum ErrorType {
+    enum MsgType {
         /**
          * 静默控制台输出
          */
@@ -59,10 +59,10 @@ declare namespace API {
      * 获取列表数据统一的请求格式
      */
     type ListRequestParams = {
-        params?: any,
-        filter?: { createdTime?: string, modifiedTime?: string },
-        sort?: Record<string, SortOrder>,
-        page?: { current?: number, pageSize?: number }
+        params?: object;
+        filter?: { createdTime?: string, modifiedTime?: string };
+        sort?: Record<string, SortOrder>;
+        page?: { current?: number, pageSize?: number };
     }
 
     /**

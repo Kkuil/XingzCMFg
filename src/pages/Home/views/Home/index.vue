@@ -1,16 +1,44 @@
 <script setup lang="ts">
+import {reactive, ref, watch} from "vue"
 import {state, actions} from "@/store"
+import {useRoute, useRouter} from "vue-router"
 
+const $router = useRouter()
+const $route = useRoute()
+
+const articles = ref<Element>();
+
+// 分类
+const categories = ["最新文章", "热门文章", "优质文章"];
+// 当前选中的标签和分类信息
+const activeInfo = reactive({
+    tag: "",
+    category: "最新文章"
+});
+
+// 初始化tags
 (function () {
     if (!state.TagState.tags.tags?.length) {
         actions.TagActions.setTags()
     }
 })()
 
+// 监听路由变化
+watch(() => $route, (route) => {
+    console.log(route)
+}, {
+    deep: true,
+    immediate: true
+})
+
+const changeArticles = () => {
+
+}
+
 </script>
 
 <template>
-    <div class="home flex-center px-[10px] md:px-[30px] lg:px-[75px] pt-[15px] w-screen" ref="home">
+    <div class="home flex-center px-[10px] md:px-[30px] lg:px-[75px] pt-[15px] w-screen z-[-1]" ref="home">
         <div class="container flex justify-between w-full">
             <main class="main flex flex-col flex-1 xl:flex-[0.74] w-full">
                 <div class="main-tags flex w-full h-[30px] mb-[10px]">
@@ -68,55 +96,22 @@ import {state, actions} from "@/store"
                             hover:text-[#2589d4]
                             text-[#2589d4]
                         "
+                        v-for="item in categories"
+                        :key="item"
+                        :class="activeInfo.category === item ? 'text-[#2589d4]' : ''"
+                        @clcik="changeArticles(item)"
                     >
-                        最新文章
-                    </div>
-                    <div
-                        class="
-                                cate
-                                overflow-ellipsis
-                                overflow-hidden
-                                px-[10px]
-                                max-w-[100px]
-                                text-sm
-                                h-full
-                                bg-[#fafafa]
-                                mr-[8px]
-                                flex-center
-                                cursor-pointer
-                                transition-[color]
-                                hover:text-[#2589d4]
-                            "
-                    >
-                        推荐文章
-                    </div>
-                    <div
-                        class="
-                                cate
-                                overflow-ellipsis
-                                overflow-hidden
-                                px-[10px]
-                                max-w-[100px]
-                                text-sm
-                                h-full
-                                bg-[#fafafa]
-                                mr-[8px]
-                                flex-center
-                                cursor-pointer
-                                transition-[color]
-                                hover:text-[#2589d4]
-                            "
-                    >
-                        优质文章
+                        {{ item }}
                     </div>
                 </div>
-                <div class="main-articles w-full flex-1">
+                <div class="main-articles w-full flex-1" ref="articles">
                     <el-skeleton :count="5" animated :loading="false">
                         <template #default>
                             <div
-                                class="w-full h-[200px] relative bg-white mb-4 flex-center p-[15px] cursor-pointer transition-[background] hover:bg-[#fafafa]"
-                                v-for="item in 1"
+                                class="w-full h-[200px] relative bg-white mb-4 flex-center p-[15px] cursor-pointer transition-all hover:bg-[#fafafa]"
+                                v-for="item in 20"
                                 :key="item"
+                                v-slide-in
                                 title="点击阅读文章"
                             >
                                 <img
@@ -208,25 +203,6 @@ import {state, actions} from "@/store"
             </main>
             <div class="main-side bg-[#0094ff] flex-[0.24] h-[600px] sticky top-[20px] right-0 hidden xl:block"></div>
         </div>
-        <i class="
-            iconfont
-            icon-arrow-up
-            fixed
-            bottom-[40px]
-            right-[40px]
-            rounded-full
-            w-[45px]
-            h-[45px]
-            flex-center
-            bg-white
-            cursor-pointer
-            text-xl
-            text-[#777]
-            shadow-lg
-            hover:shadow-xl
-            transition-[box-shadow]
-        "
-        ></i>
     </div>
 </template>
 

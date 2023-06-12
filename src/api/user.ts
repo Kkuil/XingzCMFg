@@ -1,5 +1,5 @@
 import request from "@/utils/request"
-import MD5 from "@/utils/MD5.ts";
+import MD5 from "@/utils/MD5.ts"
 
 /**
  * @description 用户使用账号登录接口

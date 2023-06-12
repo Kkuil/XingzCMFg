@@ -6,6 +6,7 @@ import {PHONE_REG} from "@/constant/auth.ts"
 import {ElMessage} from "element-plus"
 import {useRouter} from "vue-router";
 import router from "@/router";
+import _ from "lodash";
 
 const $router = useRouter()
 
@@ -28,6 +29,7 @@ const userInfo = reactive({
 
 const remainSeconds = ref(0)
 
+// 计数器
 const counter = () => {
     const counter = setInterval(() => {
         if (remainSeconds < 0) {
@@ -45,20 +47,13 @@ const getSmsCaptcha = async () => {
     if (!isLegalPhone(userInfo.phone)) {
         return
     }
-    const {status, msg, data,}: API.Result = await getSms(userInfo.phone)
-    if (!data) {
-        ElMessage.error(msg)
-    } else {
-        ElMessage.success(msg)
-        remainSeconds.value = 60
-        counter()
-    }
+    await getSms(userInfo.phone)
 }
 
 /**
  * 注册
  */
-const registry = async (e: Event) => {
+const registry = _.throttle(async (e: Event) => {
     e.preventDefault()
     if (!isLegalPhone(userInfo.phone)) {
         return
@@ -77,7 +72,7 @@ const registry = async (e: Event) => {
         ElMessage.success(msg)
         await router.push("/xingz-cm")
     }
-}
+}, 1200)
 
 </script>
 
@@ -122,7 +117,7 @@ const registry = async (e: Event) => {
                                 id="captcha"
                                 name="captcha"
                                 type="button"
-                                :value="remainSeconds === 0 ? '获取验证码' : `${remainSeconds}后发送`"
+                                :value="remainSeconds === 0 ? '获取验证码' : `${remainSeconds}秒后重新发送`"
                                 @click="getSmsCaptcha"
                                 class="block pl-3 w-[37%] rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                             />
@@ -131,7 +126,7 @@ const registry = async (e: Event) => {
                     <div>
                         <button
                             type="submit"
-                            class="flex-center w-full rounded-md bg-[#0094fd] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#0094ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            class="flex-center w-full rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm bg-[#6498be] hover:bg-[#4298bf] transition-[background-color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                             @click="registry"
                         >
                             注册

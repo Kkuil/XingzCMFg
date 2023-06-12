@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import {listTags} from "@/api/tag.ts";
+import {listTags} from "@/api/tag.ts"
 
 const useTagStore = defineStore("Tag", {
     state: (): { tags?: TAG.TagItem[] } => {

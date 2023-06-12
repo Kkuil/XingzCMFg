@@ -1,16 +1,19 @@
 import useUserAuthStore, {UserAuthState, UserAuthActions, UserAuthGetters} from "@/store/modules/useUserAuthStore.ts"
 import useTagStore, {TagState, TagActions} from "@/store/modules/useTagStore.ts"
+import useChatGPTModelStore, {ChatGPTModelActions, ChatGPTModelState} from "@/store/modules/useChatGPTModelStore.ts"
 
 // 状态
 export const state = {
     UserAuthState,
-    TagState
+    TagState,
+    ChatGPTModelState
 }
 
 // actions
 export const actions = {
     UserAuthActions,
-    TagActions
+    TagActions,
+    ChatGPTModelActions
 }
 
 // getters
@@ -20,5 +23,6 @@ export const getters = {
 
 export default {
     useUserAuthStore,
-    useTagStore
+    useTagStore,
+    useChatGPTModelStore
 }

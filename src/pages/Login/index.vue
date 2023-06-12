@@ -3,8 +3,6 @@ import {reactive} from "vue"
 import FormFrame from "@/components/FormFrame/index.vue"
 import {loginWithAccount} from "@/api/user"
 import {useRouter} from "vue-router"
-import router from "@/router";
-import {ElMessage} from "element-plus";
 
 const $router = useRouter()
 
@@ -19,17 +17,10 @@ const userInfo = reactive({
  */
 const handleSubmit = async (e: Event) => {
     e.preventDefault()
-    const {msg, data}: API.Result = await loginWithAccount({
+    await loginWithAccount({
         username: userInfo.username,
         password: userInfo.password
     })
-    if (!data) {
-        ElMessage.error(msg)
-    } else {
-        ElMessage.success(msg)
-        await router.push("/xingz-cm")
-    }
-    console.log(data)
 }
 
 </script>
@@ -37,7 +28,6 @@ const handleSubmit = async (e: Event) => {
 <template>
     <FormFrame title="登录">
         <template #cover>
-            <div>123</div>
         </template>
         <template #form>
             <div class="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -80,7 +70,7 @@ const handleSubmit = async (e: Event) => {
                     <div>
                         <button
                             type="submit"
-                            class="flex w-full justify-center rounded-md bg-[#0094fd] px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[#0094ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            class="flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm bg-[#6498be] hover:bg-[#4298bf] transition-[background-color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                         >
                             登录
                         </button>
