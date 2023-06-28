@@ -13,4 +13,9 @@ declare namespace USER {
         avatar?: string;
         isVip?: string;
     }
+    enum Gender {
+        UNKNOWN,
+        MALE,
+        FEMALE
+    }
 }

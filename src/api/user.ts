@@ -6,7 +6,7 @@ import MD5 from "@/utils/MD5.ts"
  * @param param0 API.LoginParams
  * @returns Promise<object>
  */
-export async function loginWithAccount({username, password}: API.AccountLoginParams): Promise<object> {
+export async function loginWithAccount({username, password}: API.AccountLoginParams): Promise<API.Result> {
     return await request({
         url: "/user-login-account",
         method: "POST",
@@ -19,10 +19,10 @@ export async function loginWithAccount({username, password}: API.AccountLoginPar
 
 /**
  * @description 获取验证码接口
- * @param param0 API.LoginParams
+ * @param phone API.LoginParams
  * @returns Promise<object>
  */
-export async function getSms(phone: string): Promise<object> {
+export async function getSms(phone: string): Promise<API.Result> {
     return await request({
         url: "/user-sms",
         method: "GET",
@@ -37,7 +37,7 @@ export async function getSms(phone: string): Promise<object> {
  * @param param0 API.LoginParams
  * @returns Promise<object>
  */
-export async function registryWithPhone({phone, sms}: API.PhoneRegistryParams): Promise<object> {
+export async function registryWithPhone({phone, sms}: API.PhoneRegistryParams): Promise<API.Result> {
     return await request({
         url: "/user-registry-phone",
         method: "POST",
@@ -49,13 +49,63 @@ export async function registryWithPhone({phone, sms}: API.PhoneRegistryParams): 
 }
 
 /**
- * @description 获取用户信息
- * @param param0 string
+ * @description 通过用户名获取用户信息
+ * @param username string
  * @returns Promise<API.Result>
  */
-export async function getUserInfo(id: string): Promise<API.Result> {
+export async function getUserByUsername(username: string): Promise<API.Result> {
     return await request({
         method: "GET",
-        url: `/user/${id}`
+        url: `/user-username/${username}`,
+        params: {
+            username
+        }
+    })
+}
+
+/**
+ * @description 获取用户榜单
+ * @param current number
+ * @param pageSize number
+ * @param sort number
+ */
+export async function listUserRank({current, pageSize, sort = 1}: {
+    current: number,
+    pageSize: number,
+    sort?: number
+}): Promise<API.Result> {
+    return await request({
+        url: "/user-rank",
+        method: "GET",
+        params: {
+            current,
+            pageSize,
+            sort
+        }
+    })
+}
+
+/**
+ * @description 通过用户ID获取用户信息
+ * @param id string
+ * @returns Promise<API.Result>
+ */
+export async function getUserById(id: string): Promise<API.Result> {
+    return await request({
+        method: "GET",
+        url: `/user/${id}`,
+        params: {
+            id
+        }
+    })
+}
+
+/**
+ * @description 获取用户背景图
+ */
+export async function listUserBg(): Promise<API.Result> {
+    return await request({
+        url: "/user-bg",
+        method: "GET"
     })
 }

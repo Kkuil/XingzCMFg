@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {reactive, ref} from "vue"
+import {reactive, ref, onUnmounted} from "vue"
 import FormFrame from "@/components/FormFrame/index.vue"
 import {registryWithPhone, getSms} from "@/api/user"
 import {PHONE_REG} from "@/constant/auth.ts"
@@ -29,11 +29,13 @@ const userInfo = reactive({
 
 const remainSeconds = ref(0)
 
-// 计数器
+/**
+ * 验证码计时器
+ */
 const counter = () => {
     const counter = setInterval(() => {
         if (remainSeconds < 0) {
-            remainSeconds.value = 60
+            remainSeconds.value = 0
             clearInterval(counter)
         }
         remainSeconds.value--
@@ -53,7 +55,7 @@ const getSmsCaptcha = async () => {
 /**
  * 注册
  */
-const registry = _.throttle(async (e: Event) => {
+const loginRegistry = _.throttle(async (e: Event) => {
     e.preventDefault()
     if (!isLegalPhone(userInfo.phone)) {
         return
@@ -62,25 +64,30 @@ const registry = _.throttle(async (e: Event) => {
         ElMessage.error("验证码不能为空")
         return
     }
-    const {msg, data}: API.Result = await registryWithPhone({
+    const {data}: API.Result = await registryWithPhone({
         phone: userInfo.phone,
         sms: userInfo.sms,
     })
-    if (!data) {
-        ElMessage.error(msg)
-    } else {
-        ElMessage.success(msg)
-        await router.push("/xingz-cm")
+    if (data) {
+        await $router.push("/xingz-cm")
     }
 }, 1200)
+
+/**
+ * 重置验证码数据
+ */
+const reset = () => {
+    remainSeconds.value = 0
+}
+
+onUnmounted(() => {
+
+})
 
 </script>
 
 <template>
     <FormFrame title="注册">
-        <template #cover>
-            <div>123</div>
-        </template>
         <template #form>
             <div class="sm:mx-auto sm:w-full sm:max-w-sm">
                 <form class="space-y-6" action="#" method="POST">
@@ -100,7 +107,7 @@ const registry = _.throttle(async (e: Event) => {
                     </div>
                     <div>
                         <div class="flex items-center justify-between">
-                            <label for="password"
+                            <label for="sms"
                                    class="block text-sm font-medium leading-6 text-gray-900">验证码</label>
                         </div>
                         <div class="mt-2 flex justify-between">
@@ -127,19 +134,14 @@ const registry = _.throttle(async (e: Event) => {
                         <button
                             type="submit"
                             class="flex-center w-full rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm bg-[#6498be] hover:bg-[#4298bf] transition-[background-color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                            @click="registry"
+                            @click="loginRegistry"
                         >
-                            注册
+                            登录或注册
                         </button>
                     </div>
                 </form>
-                <p class="mt-10 text-center text-sm text-gray-500">
-                    已有账户？
-                    <a href="javascript: void(0);"
-                       class="font-semibold leading-6 text-[#0094ff] hover:text-indigo-500"
-                       @click="$router.push({ name: 'login' })">去登录吧</a>
-                </p>
-                <p class="text-sm text-[gray] flex-center">密码使用md5加密技术，请放心注册</p>
+                <span class="text-sm flex justify-end mt-[15px] hover:text-[#5d93bb] cursor-pointer" @click="$router.push({name: 'login'})">返回账号密码登录</span>
+                <p class="text-sm text-[gray] flex-center mt-[15px]">密码使用md5加密技术，请放心注册</p>
             </div>
         </template>
     </FormFrame>

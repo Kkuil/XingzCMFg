@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import {actions, state} from "@/store"
-import {onMounted, reactive, ref, watch} from "vue"
-import {useRouter} from "vue-router"
+import {onMounted, reactive, watch} from "vue"
 import {CircleClose, CircleCloseFilled, Search} from "@element-plus/icons-vue"
-import {getUserInfo} from "@/api/user.ts"
+import {getUserByUsername} from "@/api/user.ts"
 import {ElMessage} from "element-plus"
 
 // websocket地址
@@ -47,7 +46,7 @@ async function getUserAuthInfo() {
 // 搜索用户
 const searchUsername = async function () {
     if (search.input) {
-        const {data}: API.Result = await getUserInfo(search.input)
+        const {data}: API.Result = await getUserByUsername(search.input)
         search.data = data
     } else {
         search.data = []

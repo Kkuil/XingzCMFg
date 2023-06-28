@@ -27,8 +27,6 @@ const handleSubmit = async (e: Event) => {
 
 <template>
     <FormFrame title="登录">
-        <template #cover>
-        </template>
         <template #form>
             <div class="sm:mx-auto sm:w-full sm:max-w-sm">
                 <form class="space-y-6" @submit="handleSubmit">
@@ -80,7 +78,7 @@ const handleSubmit = async (e: Event) => {
                     没有账户？
                     <a href="javascript: void(0);"
                        class="font-semibold leading-6 text-[#0094ff] hover:text-indigo-500"
-                       @click="$router.push({ name: 'registry' })">去注册吧</a>
+                       @click="$router.push({ name: 'registry' })">手机号登录或注册</a>
                 </p>
             </div>
         </template>

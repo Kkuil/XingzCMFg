@@ -1,14 +1,4 @@
 /**
- * 请求白名单
- */
-export const WHITE_LIST = [
-    "/user-login-account",
-    "/user-registry-phone",
-    "/user-sms",
-    "/user-forget-pwd"
-]
-
-/**
  * 响应头中的token key
  */
 export const TOKEN_IN_HEADER_KEY = "xingz_cm_user_token"

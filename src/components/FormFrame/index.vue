@@ -15,7 +15,7 @@ const $props = defineProps({
     <div class="form w-screen h-screen flex">
         <div class="cover h-full bg-[#000] w-0 lg:w-[65%] md:w-[50%] sm:w-0 relative overflow-hidden">
             <div class="container w-full h-full flex-center flex-col">
-                <h2 class="cover-text relative text-[85px] font-bold font-serif bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">星知文章</h2>
+                <h2 class="cover-text relative text-[100px] font-bold font-serif bg-clip-text bg-gradient-to-r from-blue-500 to-blue-500 text-transparent">星知文章</h2>
             </div>
         </div>
         <div class="container h-full flex-center w-full lg:w-[35%] md:w-[50%] sm:w-full">
@@ -23,7 +23,7 @@ const $props = defineProps({
                 class="registry flex flex-1 min-h-full flex-col justify-center px-6 py-12 lg:px-8 transition-all">
                 <div class="sm:mx-auto sm:w-full sm:max-w-sm">
                     <img class="mx-auto" src="/favicon.png" alt="星知文章CM" style="width: 200px;"/>
-                    <h2 class="text-2xl flex-center my-3 font-semibold">{{ $props.title }}</h2>
+                    <h2 class="text-2xl flex-center my-3 font-semibold text-white">{{ $props.title }}</h2>
                 </div>
                 <slot name="form"></slot>
             </div>

@@ -6,7 +6,7 @@ import {NavigationHookAfter, NavigationGuard} from "vue-router"
 export const beforeEach: NavigationGuard = ((to, from, next) => {
     // 为每个路由添加时间戳参数
     if (to.path !== from.path) {
-        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-namespace
         to.query._t = Date.now()
     }
     next()

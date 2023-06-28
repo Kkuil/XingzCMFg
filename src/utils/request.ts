@@ -1,11 +1,11 @@
-import {SIGN_KEY_IN_HEADER, TOKEN_IN_HEADER_KEY, WHITE_LIST} from "@/constant/auth.ts"
-import axios, {AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError} from "axios"
+import {SIGN_KEY_IN_HEADER, TOKEN_IN_HEADER_KEY} from "@/constant/auth.ts"
+import axios, {AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import router from "@/router"
 import {ElMessage} from "element-plus"
 import nprogress from "nprogress"
 import MsgTypeHandler from "@/utils/MsgTypeHandler.ts"
 import {generateSignature} from "@/utils/ApiSign.ts"
-import {PRIVATE_KEY} from "@/constant/ApiSignKey.ts";
+import {PRIVATE_KEY} from "@/constant/ApiSignKey.ts"
 
 // 取消请求的token
 const source = axios.CancelToken.source()
@@ -20,24 +20,19 @@ const request: AxiosInstance = axios.create({
 request.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     nprogress.start()
     // token处理
-    if (!WHITE_LIST.includes(config.url as string)) {
-        const token = localStorage.getItem(TOKEN_IN_HEADER_KEY)
-        if (!token) {
-            await router.push({
-                name: "login"
-            })
-        } else {
-            config.headers[TOKEN_IN_HEADER_KEY] = token
-        }
+    const token = localStorage.getItem(TOKEN_IN_HEADER_KEY)
+    if (token) {
+        config.headers[TOKEN_IN_HEADER_KEY] = token
     }
     // 添加API签名的统一参数params，以便后端重新加密验证
     config.params = {
+        ...config.params,
         timestamp: Date.now(),
         nonce: Math.random().toString(36).substr(2, 8)
     }
     const sign_value = getApiSign(config.params)
     // console.log(config.params)
-    // console.log(sign_value)
+    console.log(sign_value)
     if (sign_value) {
         config.headers[SIGN_KEY_IN_HEADER] = sign_value
     }
@@ -70,16 +65,13 @@ request.interceptors.response.use((res: AxiosResponse) => {
     return res.data
 }, (err: AxiosError) => {
     nprogress.done()
-    if (err?.response?.data?.length <= 30) {
-        ElMessage({
-            type: "error",
-            message: err?.response?.data ? err?.response?.data : "error"
-        })
-    }
-    console.log(err?.response?.data)
-    router.push({
-        name: "home"
-    }).then(r => console.log(r))
+    console.log(err?.response)
+    // if (err?.response?.data?.length <= 30) {
+    //     ElMessage({
+    //         type: "error",
+    //         message: err?.response?.data ? err?.response?.data : "error"
+    //     })
+    // }
     return Promise.reject(err)
 })
 
@@ -91,8 +83,7 @@ function getApiSign(params: object) {
     // 1. 将参数进行排序
     const sortedParams = sortParameters(params)
     // 2. 签名
-    const sign_value = generateSignature(sortedParams, PRIVATE_KEY)
-    return sign_value
+    return generateSignature(sortedParams, PRIVATE_KEY)
 }
 
 /**
@@ -105,9 +96,9 @@ function sortParameters(params: object) {
     let sortedParams = ""
     sortedKeys.forEach(key => {
         sortedParams += `${key}=${params[key]}&`
-    });
-    // 移除末尾的"&"字符
-    sortedParams = sortedParams.slice(0, -1)
+    })
+    // 移除末尾的"&"字符和换行符
+    sortedParams = sortedParams.slice(0, -1).replaceAll(/\n/g, "")
     console.log(sortedParams)
     return sortedParams
 }

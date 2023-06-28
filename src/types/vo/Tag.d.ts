@@ -3,7 +3,7 @@
  */
 declare namespace TAG {
     type TagItem = {
-        id?: string;
+        id?: number;
         tagName?: string;
     }
 }

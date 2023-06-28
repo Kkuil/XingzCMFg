@@ -27,3 +27,65 @@ export const uploadCover = async (cover: File): Promise<API.Result> => {
         }
     })
 }
+
+/**
+ * @description 分页获取文章
+ */
+export const listArticles = async (params: ARTICLE.ArticleListParams): Promise<API.Result> => {
+    return await request({
+        url: "/uarticle",
+        method: "GET",
+        params
+    })
+}
+
+/**
+ * 获取文章详情
+ */
+export const getArticleById = async (articleId: string): Promise<API.Result> => {
+    return await request({
+        url: `/uarticle/${articleId}`,
+        method: "GET",
+        params: {
+            articleId
+        }
+    })
+}
+
+/**
+ * 点赞获取消点赞
+ */
+export const like = async (articleId: string): Promise<API.Result> => {
+    return await request({
+        url: `/uarticle/like/${articleId}`,
+        method: "GET",
+        params: {
+            articleId
+        }
+    })
+}
+
+/**
+ * 收藏获取消收藏
+ */
+export const collect = async (articleId: string): Promise<API.Result> => {
+    return await request({
+        url: `/uarticle/collect/${articleId}`,
+        method: "GET",
+        params: {
+            articleId
+        }
+    })
+}
+
+/**
+ * 评论
+ */
+export const comment = async (data: ARTICLE.ArticleComment): Promise<API.Result> => {
+    return await request({
+        url: "/uarticle/comment",
+        method: "POST",
+        data,
+        params: data
+    })
+}

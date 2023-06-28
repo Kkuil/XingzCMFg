@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import NavHeader from "@/pages/Home/components/NavHeader.vue"
-import {actions} from "@/store"
+import {state, actions} from "@/store"
 
 // 获取用户信息
 (async function getUserAuthInfo() {
-    await actions.UserAuthActions.setUserAuthInfo()
+    if (!state.UserAuthState.userInfo.userInfo?.id) {
+        await actions.UserAuthActions.setUserAuthInfo()
+    }
 })()
 
 </script>

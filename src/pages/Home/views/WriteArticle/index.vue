@@ -3,6 +3,7 @@ import {reactive, ref, nextTick, watch} from "vue"
 import {Plus} from "@element-plus/icons-vue"
 import {ElImageViewer, ElMessage, UploadUserFile} from "element-plus";
 import {Delta} from "@vueup/vue-quill"
+import {state, actions} from "@/store"
 // Delta转html转换器
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html"
 // 富文本转html，过滤潜在XSS攻击内容库
@@ -10,11 +11,30 @@ import DOMPurify from "dompurify"
 import {publishArticle, uploadCover} from "@/api/article.ts"
 import _ from "lodash"
 import {useRouter} from "vue-router"
+import RecommendArticle from "@/components/RecommendArticle/index.vue"
 
-import {ElInput} from 'element-plus'
+import {ElInput} from "element-plus"
 // 关键词提取
 // import nodejieba from "nodejieba"
 
+const $router = useRouter();
+
+// 初始化tags
+(async function () {
+    if (!state.TagState.tags.tags?.length) {
+        await actions.TagActions.setTags()
+    }
+})();
+
+// 判断用户权限
+(function () {
+    console.log(123)
+    if (!state.UserAuthState.userInfo.userInfo?.id) {
+        $router.push({
+            name: "login"
+        })
+    }
+})();
 
 /**
  * 文章信息类型定义
@@ -26,9 +46,8 @@ interface articleInfo {
     coverUrl?: string;
     onlineCoverUrl?: string;
     isLocalUpload?: boolean;
+    tags?: TAG.TagItem[];
 }
-
-const $router = useRouter()
 
 // 最大标题长度
 const MAX_TITLE_LEN = 20
@@ -74,7 +93,9 @@ const articleInfo = reactive<articleInfo>({
     coverUrl: "",
     isLocalUpload: false,
     // 线上地址
-    onlineCoverUrl: ""
+    onlineCoverUrl: "",
+    // 标签数组
+    tags: []
 })
 
 // 是否展示抽屉
@@ -84,12 +105,6 @@ const isPreviewPic = ref<boolean>(false)
 // 预览地址
 const previewUrl = ref<string>("")
 
-// 标签输入框的值
-const inputValue = ref<string>("")
-// 动态增加标签
-const dynamicTags = ref<string[]>([])
-// 标签输入框的可见性
-const inputVisible = ref<boolean>(false)
 // 选中输入框
 const InputRef = ref<InstanceType<typeof ElInput>>()
 
@@ -132,7 +147,8 @@ const publish = _.throttle(async () => {
     const {data}: API.Result = await publishArticle({
         title: articleInfo.title,
         content: articleInfo.content,
-        cover: articleInfo.isLocalUpload ? articleInfo.coverUrl : "Https://" + articleInfo.onlineCoverUrl
+        cover: articleInfo.isLocalUpload ? articleInfo.coverUrl : articleInfo.onlineCoverUrl ? "Https://" + articleInfo.onlineCoverUrl : "",
+        tagIds: articleInfo.tags?.join(",")
     })
     if (data) {
         $router.push({
@@ -149,35 +165,6 @@ const parseContent = () => {
     const converter = new QuillDeltaToHtmlConverter(articleInfo.content?.ops)
     // 解析成避免了XSS攻击的html字符串
     articleInfo.content = DOMPurify.sanitize(converter.convert())
-}
-
-/**
- * 删除标签
- * @param tag string
- */
-const handleClose = (tag: string) => {
-    dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)
-}
-
-/**
- * 展示输入框并自动聚焦
- */
-const showInput = () => {
-    inputVisible.value = true
-    nextTick(() => {
-        InputRef.value!.input!.focus()
-    })
-}
-
-/**
- * 确认增加标签
- */
-const handleInputConfirm = () => {
-    if (inputValue.value) {
-        dynamicTags.value.push(inputValue.value)
-    }
-    inputVisible.value = false
-    inputValue.value = ''
 }
 
 /**
@@ -398,61 +385,37 @@ const extractKeywords = () => {
                     <span>推荐文章</span>
                     <i class="iconfont icon-link hover:text-[#0094ff] cursor-pointer"></i>
                 </div>
-                <div class="recommend-articles flex flex-col flex-1 px-[20px] py-[10px]">
-                    <div
-                        class="
-                            article
-                            w-full
-                            h-[30px]
-                            leading-[30px]
-                            cursor-pointer
-                            rounded-[2px]
-                            hover:bg-[#f1f1f1]
-                            overflow-hidden
-                            overflow-ellipsis
-                            line-clamp-1
-                            my-[5px]
-                            px-[5px]
-                        "
-                        v-for="(article, index) in 5"
-                        :key="index"
-                    >
-                        随机一段废话因何而发生?在这种困难的抉择下, 本人思来想去, 寝食难安.
-                        现在, 解决随机一段废话的问题, 是非常非常重要的. 所以, 在这种困难的抉择下, 本人思来想去,
-                    </div>
-                </div>
+                <RecommendArticle/>
             </div>
             <div
                 class="article-tags hidden sm:block bg-white border-[1px] border-[#d1d5db] mt-[20px] ml-[10px] md:ml-0 w-[200px] xl:w-auto"
             >
-                <div class="words border-b-[1px] border-[#d1d5db] h-[40px] flex items-center justify-between px-[10px] xl:px-[20px]">
+                <div
+                    class="words border-b-[1px] border-[#d1d5db] h-[40px] flex items-center justify-between px-[10px] xl:px-[20px]">
                     <span>文章标签</span>
                     <el-button type="primary" round size="small" @click="extractKeywords">提取关键词</el-button>
                 </div>
                 <div class="container w-full px-[10px] xl:px-[20px] py-[10px]">
-                    <el-tag
-                        v-for="tag in dynamicTags"
-                        :key="tag"
-                        class="mx-1"
-                        closable
-                        size="large"
-                        :disable-transitions="false"
-                        @close="handleClose(tag)"
+                    <el-check-tag
+                        v-for="tag in state.TagState.tags.tags"
+                        :checked="articleInfo.tags?.indexOf(tag.id) > -1"
+                        @change="(isChecked) => {
+                            if (isChecked) {
+                                if(articleInfo.tags?.length < 5) {
+                                    articleInfo.tags?.push(tag.id)
+                                } else {
+                                    ElMessage.error({
+                                        message: '标签数量过多'
+                                    })
+                                }
+                            } else {
+                                articleInfo.tags?.splice(articleInfo.tags?.indexOf(tag.id), 1)
+                            }
+                        }"
+                        class="mr-[5px] mb-[5px]"
                     >
-                        {{ tag }}
-                    </el-tag>
-                    <el-input
-                        v-if="inputVisible"
-                        ref="InputRef"
-                        v-model="inputValue"
-                        class="ml-1 w-20"
-                        size="large"
-                        @keyup.enter="handleInputConfirm"
-                        @blur="handleInputConfirm"
-                    />
-                    <el-button v-else class="button-new-tag ml-1" size="default" @click="showInput">
-                        + New Tag
-                    </el-button>
+                        {{ tag.tagName }}
+                    </el-check-tag>
                 </div>
             </div>
         </div>

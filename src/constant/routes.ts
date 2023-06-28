@@ -19,7 +19,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "欢迎您"
                         },
-                        component: import("@/pages/Home/views/Home/index.vue")
+                        component: () => import("@/pages/Home/views/Home/index.vue")
                     },
                     {
                         path: "write-article",
@@ -27,7 +27,23 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "写文章"
                         },
-                        component: import("@/pages/Home/views/WriteArticle/index.vue")
+                        component: () => import("@/pages/Home/views/WriteArticle/index.vue")
+                    },
+                    {
+                        path: "article/:articleId",
+                        name: "article-detail",
+                        meta: {
+                            title: "文章详情"
+                        },
+                        component: () => import("@/pages/Home/views/ArticleDetail/index.vue")
+                    },
+                    {
+                        path: "profile/:userId",
+                        name: "profile",
+                        meta: {
+                            title: "个人主页"
+                        },
+                        component: () => import("@/pages/Home/views/Profile/index.vue")
                     },
                     {
                         path: "question-answer-area",
@@ -35,7 +51,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "问答区"
                         },
-                        component: import("@/pages/Home/views/QuestionAndAnswerArea/index.vue")
+                        component: () => import("@/pages/Home/views/QuestionAndAnswerArea/index.vue")
                     },
                     {
                         path: "study-room",
@@ -43,7 +59,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "自习室"
                         },
-                        component: import("@/pages/Home/views/StudyRoom/index.vue")
+                        component: () => import("@/pages/Home/views/StudyRoom/index.vue")
                     },
                     {
                         path: "chat-room",
@@ -51,7 +67,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "聊天室"
                         },
-                        component: import("@/pages/Home/views/ChatRoom/index.vue")
+                        component: () => import("@/pages/Home/views/ChatRoom/index.vue")
                     },
                     {
                         path: "chat-gpt",
@@ -59,7 +75,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "ChatGPT"
                         },
-                        component: import("@/pages/Home/views/ChatGPT/index.vue")
+                        component: () => import("@/pages/Home/views/ChatGPT/index.vue")
                     },
                     {
                         path: "vip",
@@ -67,7 +83,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "VIP"
                         },
-                        component: import("@/pages/Home/views/VIP/index.vue")
+                        component: () => import("@/pages/Home/views/VIP/index.vue")
                     },
                     {
                         path: "greedy-snake",
@@ -75,7 +91,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "贪吃蛇"
                         },
-                        component: import("@/pages/Home/views/GreedySnake/index.vue")
+                        component: () => import("@/pages/Home/views/GreedySnake/index.vue")
                     },
                     {
                         path: "tetris",
@@ -83,7 +99,7 @@ export const routes: RouteRecordRaw[] = [
                         meta: {
                             title: "俄罗斯方块"
                         },
-                        component: import("@/pages/Home/views/Tetris/index.vue")
+                        component: () => import("@/pages/Home/views/Tetris/index.vue")
                     }
                 ]
             },
@@ -108,6 +124,10 @@ export const routes: RouteRecordRaw[] = [
     {
         path: "/login",
         redirect: "/xingz-cm/login"
+    },
+    {
+        path: "/registry",
+        redirect: "/xingz-cm/registry"
     },
     {
         path: "/:pathMatch(.*)*",

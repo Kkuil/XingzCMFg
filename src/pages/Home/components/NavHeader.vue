@@ -67,10 +67,25 @@ watch(() => state.UserAuthState.userInfo.userInfo, (value) => {
 const toggleShowSelect = (index: number, isShowSelect: boolean) => {
     navigation[index].isShowSelect = isShowSelect
 }
+
+/**
+ * 退出登录
+ */
+const logout = () => {
+    window.location.href = $route.fullPath
+    localStorage.removeItem(TOKEN_IN_HEADER_KEY)
+}
+
+/**
+ * 去登录
+ */
+const goLogin = () => {
+    $router.push({name: 'login'})
+}
 </script>
 
 <template>
-    <nav class="nav w-screen flex items-center justify-between px-4 border-b-[1px] border-[gray] z-[999]">
+    <nav class="nav w-screen flex items-center justify-between px-4 border-b-[1px] border-[gray] z-[999] bg-white">
         <!-- logo -->
         <img
             src="../../../assets/images/logo-nav.png"
@@ -151,7 +166,11 @@ const toggleShowSelect = (index: number, isShowSelect: boolean) => {
                 cursor-pointer
                 hover:bg-opacity-70
             "
-            @click="$router.push({ name: 'write-article' })"
+            @click="() => {
+                if(!isWriting) {
+                    $router.push({ name: 'write-article' })
+                }
+            }"
         >
             <i class="iconfont icon-yumaobi text-[#ccc]"></i>
             <span v-if="!isWriting" class="block md:hidden xl:block">写文章</span>
@@ -166,34 +185,37 @@ const toggleShowSelect = (index: number, isShowSelect: boolean) => {
                       :content="isLogin ? '点击展开':  '登录查看更多权益'"
                       placement="bottom-end"
                   >
-                      <el-avatar
-                          class="hidden md:flex cursor-pointer"
-                          :title="state.UserAuthState.userInfo.userInfo?.username"
-                          :src="isLogin ? state.UserAuthState.userInfo.userInfo?.avatar : ''"
-                      >
-                          {{ isLogin ? '' : "user" }}
-                      </el-avatar>
+                        <el-badge is-dot id="isInline" type="success">
+                          <el-avatar
+                              class="hidden md:flex cursor-pointer"
+                              :title="state.UserAuthState.userInfo.userInfo?.username"
+                              :src="isLogin ? state.UserAuthState.userInfo.userInfo?.avatar : ''"
+                          >
+                              {{ isLogin ? '' : "user" }}
+                          </el-avatar>
+                      </el-badge>
                   </el-tooltip>
             </span>
                 <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item v-if="isLogin" :icon="User">个人中心</el-dropdown-item>
+                        <el-dropdown-item
+                            v-if="isLogin"
+                            :icon="User"
+                            @click="$router.push({ name: 'profile', params: { userId: state.UserAuthState.userInfo.userInfo?.id } })"
+                        >
+                            个人中心
+                        </el-dropdown-item>
                         <el-dropdown-item
                             v-if="!isLogin"
                             :icon="Promotion"
-                            @click="$router.push({ name: 'login' })"
+                            @click="goLogin"
                         >
                             去登录
                         </el-dropdown-item>
                         <el-dropdown-item
                             v-if="isLogin"
                             :icon="Right"
-                            @click="() => {
-                                $router.push({
-                                    name: 'login'
-                                 })
-                                localStorage.removeItem(TOKEN_IN_HEADER_KEY)
-                            }"
+                            @click="logout"
                         >退出登录
                         </el-dropdown-item>
                     </el-dropdown-menu>
@@ -315,4 +337,5 @@ const toggleShowSelect = (index: number, isShowSelect: boolean) => {
         box-shadow: #5d93bb 0 0 5px 1px;
     }
 }
+
 </style>
