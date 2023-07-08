@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import NavHeader from "@/pages/Home/components/NavHeader.vue"
 import {state, actions} from "@/store"
+import {TOKEN_IN_HEADER_KEY} from "@/constant/auth.ts";
 
 // 获取用户信息
 (async function getUserAuthInfo() {
     if (!state.UserAuthState.userInfo.userInfo?.id) {
-        await actions.UserAuthActions.setUserAuthInfo()
+        const token = localStorage.getItem(TOKEN_IN_HEADER_KEY)
+        if (token) {
+            await actions.UserAuthActions.setUserAuthInfo()
+        }
     }
 })()
 

@@ -33,7 +33,7 @@ const useUserAuthStore = defineStore("UserAuth", {
     }
 })
 
-export default useUserAuthStore
+export default useUserAuthStore()
 export const UserAuthActions = {
     setUserAuthInfo: useUserAuthStore().setUserAuthInfo
 }

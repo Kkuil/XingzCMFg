@@ -23,6 +23,7 @@ declare namespace ARTICLE {
         commentCount?: number;
         isLiked?: boolean;
         isCollected?: boolean;
+        isVisited?: boolean;
         createdTime?: string;
     }
     type ArticleListParams = {
@@ -31,9 +32,47 @@ declare namespace ARTICLE {
         current?: number;
         pageSize?: number;
     }
+    type ArticleCommentListParams = {
+        articleId?: string;
+        current?: number;
+        pageSize?: number;
+    }
+    type ArticleSubCommentListParams = {
+        commentId?: number;
+        current?: number;
+        pageSize?: number;
+    }
+    type ArticleListWithUserIdParams = {
+        userId?: string;
+        statusId?: number;
+        current?: number;
+        pageSize?: number;
+    }
     type ArticleComment = {
         articleId?: String;
         parentId?: number | null;
         content?: String;
+    }
+    enum ArticleStatusEnums {
+        /**
+         * 未审核
+         */
+        UNAUDITED = 0,
+        /**
+         * 已审核
+         */
+        AUDITED = 1,
+        /**
+         * 草稿
+         */
+        DRAFT = 2,
+        /**
+         * 已驳回
+         */
+        REJECTED = 3,
+        /**
+         * 已下架
+         */
+        UNDERCARRIAGE = 4,
     }
 }

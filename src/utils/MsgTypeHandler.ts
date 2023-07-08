@@ -36,30 +36,31 @@ interface params {
  */
 export default function ({type, msg, redirectTo = "/xingz-cm/login"}: params) {
     switch (type) {
-    case MsgType.SILENT: {
-        console.log(msg)
-        break
-    }
-    case MsgType.WARN_MESSAGE: {
-        ElMessage.warning(msg)
-        break
-    }
-    case MsgType.ERROR_MESSAGE: {
-        ElMessage.error(msg)
-        Promise.reject(msg).then(r => console.log(r))
-        break
-    }
-    case MsgType.NOTIFICATION: {
-        ElMessage.success(msg)
-        break
-    }
-    case MsgType.REDIRECT: {
-        ElMessage.success(msg)
-        router.push(redirectTo)
-        break
-    }
-    default: {
-        ElMessage.info(msg)
-    }
+        case MsgType.SILENT: {
+            console.log(msg)
+            break
+        }
+        case MsgType.WARN_MESSAGE: {
+            ElMessage.warning(msg)
+            break
+        }
+        case MsgType.ERROR_MESSAGE: {
+            ElMessage.error(msg)
+            Promise.reject(msg)
+                .then(r => console.log(r))
+            break
+        }
+        case MsgType.NOTIFICATION: {
+            ElMessage.success(msg)
+            break
+        }
+        case MsgType.REDIRECT: {
+            ElMessage.success(msg)
+            router.push(redirectTo)
+            break
+        }
+        default: {
+            console.log(msg)
+        }
     }
 }

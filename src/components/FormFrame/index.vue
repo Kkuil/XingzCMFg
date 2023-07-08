@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import {defineProps} from "vue"
+import {loadFull} from "tsparticles"
+
+const particlesInit = async engine => {
+    await loadFull(engine)
+}
+
+const particlesLoaded = async container => {
+    console.log("Particles container loaded", container)
+}
 
 const $props = defineProps({
     title: {
@@ -9,16 +18,103 @@ const $props = defineProps({
     }
 })
 
+
 </script>
 
 <template>
     <div class="form w-screen h-screen flex">
-        <div class="cover h-full bg-[#000] w-0 lg:w-[65%] md:w-[50%] sm:w-0 relative overflow-hidden">
-            <div class="container w-full h-full flex-center flex-col">
-                <h2 class="cover-text relative text-[100px] font-bold font-serif bg-clip-text bg-gradient-to-r from-blue-500 to-blue-500 text-transparent">星知文章</h2>
-            </div>
+        <div id="particles-js" class="z-[-999] h-full lg:w-[65%] md:w-[50%] sm:w-0 relative bg-[#000] overflow-hidden">
+            <vue-particles
+                id="tsparticles"
+                :particlesInit="particlesInit"
+                :particlesLoaded="particlesLoaded"
+                :options="{
+                    particles: {
+                        color: {
+                            value: '#FF0000',
+                                animation: {
+                                enable: true,
+                                    speed: 10
+                            }
+                        },
+                        move: {
+                            attract: {
+                                enable: false,
+                                    distance: 100,
+                                    rotate: {
+                                    x: 2000,
+                                        y: 2000
+                                }
+                            },
+                            direction: 'none',
+                                enable: true,
+                                outModes: {
+                            default: 'destroy'
+                            },
+                            path: {
+                                clamp: false,
+                                    enable: true,
+                                    delay: {
+                                    value: 0
+                                },
+                                generator: 'polygonPathGenerator',
+                                    options: {
+                                    sides: 6,
+                                        turnSteps: 30,
+                                        angle: 30
+                                }
+                            },
+                            random: false,
+                                speed: 3,
+                                straight: false,
+                                trail: {
+                                fillColor: '#000',
+                                    length: 20,
+                                    enable: true
+                            }
+                        },
+                        number: {
+                            density: {
+                                enable: true,
+                                    area: 800
+                            },
+                            value: 0
+                        },
+                        opacity: {
+                            value: 1
+                        },
+                        shape: {
+                            type: 'circle'
+                        },
+                        size: {
+                            value: 2
+                        }
+                    },
+                    background: {
+                        color: '#000'
+                    },
+                    fullScreen: {
+                        zIndex: -1
+                    },
+                    emitters: {
+                        direction: 'none',
+                            rate: {
+                            quantity: 1,
+                                delay: 0.25
+                        },
+                        size: {
+                            width: 0,
+                                height: 0
+                        },
+                        position: {
+                            x: 50,
+                                y: 50
+                        }
+                    }
+                }"
+            />
         </div>
-        <div class="container h-full flex-center w-full lg:w-[35%] md:w-[50%] sm:w-full">
+        <div class="container h-full flex-center w-full lg:w-[35%] md:w-[50%] sm:w-full bg-white">
             <div
                 class="registry flex flex-1 min-h-full flex-col justify-center px-6 py-12 lg:px-8 transition-all">
                 <div class="sm:mx-auto sm:w-full sm:max-w-sm">

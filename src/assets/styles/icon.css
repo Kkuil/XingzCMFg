@@ -1,8 +1,8 @@
 @font-face {
     font-family: "iconfont"; /* Project id 4102023 */
-    src: url('//at.alicdn.com/t/c/font_4102023_fwqszg4tla.woff2?t=1687938957656') format('woff2'),
-    url('//at.alicdn.com/t/c/font_4102023_fwqszg4tla.woff?t=1687938957656') format('woff'),
-    url('//at.alicdn.com/t/c/font_4102023_fwqszg4tla.ttf?t=1687938957656') format('truetype');
+    src: url('//at.alicdn.com/t/c/font_4102023_asd3f84c84.woff2?t=1688796118340') format('woff2'),
+    url('//at.alicdn.com/t/c/font_4102023_asd3f84c84.woff?t=1688796118340') format('woff'),
+    url('//at.alicdn.com/t/c/font_4102023_asd3f84c84.ttf?t=1688796118340') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,78 @@
     font-style: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-rmb:before {
+    content: "\e831";
+}
+
+.icon-arrow-up:before {
+    content: "\e686";
+}
+
+.icon-reply:before {
+    content: "\e760";
+}
+
+.icon-comment:before {
+    content: "\e6f3";
+}
+
+.icon-like-comment:before {
+    content: "\e7c8";
+}
+
+.icon-dislike-comment:before {
+    content: "\e7c9";
+}
+
+.icon-coin:before {
+    content: "\e604";
+}
+
+.icon-firework:before {
+    content: "\ec84";
+}
+
+.icon-footprint:before {
+    content: "\e63e";
+}
+
+.icon-fullscreen-large:before {
+    content: "\e623";
+}
+
+.icon-fullscreen-standard:before {
+    content: "\e66d";
+}
+
+.icon-arrow-left:before {
+    content: "\e685";
+}
+
+.icon-arrow-right:before {
+    content: "\e687";
+}
+
+.icon-rotate-left:before {
+    content: "\e901";
+}
+
+.icon-rotate-right:before {
+    content: "\e902";
+}
+
+.icon-magnify:before {
+    content: "\e8b0";
+}
+
+.icon-shrink:before {
+    content: "\e8b1";
+}
+
+.icon-draft:before {
+    content: "\e670";
 }
 
 .icon-copyright:before {
@@ -59,18 +131,6 @@
 
 .icon-email:before {
     content: "\e606";
-}
-
-.icon-dislike-comment:before {
-    content: "\e6a7";
-}
-
-.icon-like-comment:before {
-    content: "\e6a8";
-}
-
-.icon-comment:before {
-    content: "\e719";
 }
 
 .icon-share:before {
@@ -131,10 +191,6 @@
 
 .icon-thumb-up:before {
     content: "\e6ad";
-}
-
-.icon-arrow-up:before {
-    content: "\e613";
 }
 
 .icon-expression:before {

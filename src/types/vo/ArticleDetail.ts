@@ -3,7 +3,6 @@ declare namespace ArticleDetail {
         articleDetailInfo?: ArticleDetailInfo;
         authorDetailInfo?: AuthorDetailInfo;
         authorArticleDetailInfo?: AuthorArticleDetailInfo;
-        commentDetailInfoVO?: CommentDetailInfoVO[];
     }
     /**
      * 文章详情
@@ -47,15 +46,5 @@ declare namespace ArticleDetail {
     type ArticleLink = {
         id?: string;
         title?: string;
-    }
-    type CommentDetailInfoVO = {
-        id?: number;
-        userId?: string;
-        username?: string;
-        avatar?: string;
-        content?: string;
-        likedCount?: number;
-        dislikedCount?: number;
-        createdTime?: string;
     }
 }

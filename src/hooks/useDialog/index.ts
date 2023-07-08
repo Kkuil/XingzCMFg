@@ -1,7 +1,7 @@
 // useDialog.ts
 import {createApp, h, ComponentPublicInstance, defineComponent} from "vue"
 import Dialog from "./Dialog.vue"
-import {VNode, VNodeArrayChildren} from "@vue/runtime-core";
+import {VNode, VNodeArrayChildren} from "vue"
 
 type RawChildren = string | number | boolean | VNode | VNodeArrayChildren | (() => any)
 

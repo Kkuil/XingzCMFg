@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {reactive, ref, nextTick, watch} from "vue"
+import {reactive, ref, nextTick, watch, onUpdated, onMounted} from "vue"
 import {Plus} from "@element-plus/icons-vue"
 import {ElImageViewer, ElMessage, UploadUserFile} from "element-plus";
 import {Delta} from "@vueup/vue-quill"
@@ -8,7 +8,7 @@ import {state, actions} from "@/store"
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html"
 // 富文本转html，过滤潜在XSS攻击内容库
 import DOMPurify from "dompurify"
-import {publishArticle, uploadCover} from "@/api/article.ts"
+import {publishArticle, saveDraftArticle, uploadCover} from "@/api/article.ts"
 import _ from "lodash"
 import {useRouter} from "vue-router"
 import RecommendArticle from "@/components/RecommendArticle/index.vue"
@@ -27,14 +27,15 @@ const $router = useRouter();
 })();
 
 // 判断用户权限
-(function () {
-    console.log(123)
-    if (!state.UserAuthState.userInfo.userInfo?.id) {
-        $router.push({
-            name: "login"
-        })
-    }
-})();
+onMounted(() => {
+    setTimeout(() => {
+        if (!state.UserAuthState.userInfo.userInfo?.id) {
+            $router.push({
+                name: "login"
+            })
+        }
+    }, 100)
+})
 
 /**
  * 文章信息类型定义
@@ -98,8 +99,6 @@ const articleInfo = reactive<articleInfo>({
     tags: []
 })
 
-// 是否展示抽屉
-const isShowDraw = ref<boolean>(false)
 // 是否预览图片
 const isPreviewPic = ref<boolean>(false)
 // 预览地址
@@ -111,11 +110,11 @@ const InputRef = ref<InstanceType<typeof ElInput>>()
 /**
  * 复制文章
  */
-const copyArticle = () => {
+const copyArticle = _.throttle(() => {
     const {title, content} = articleInfo
     const clipContent = `
         title: ${title},
-        content: ${JSON.stringify(content)}
+        content: ${JSON.stringify(parseContent(content))}
     `
     if (title?.length && content) {
         navigator.clipboard.writeText(clipContent).then(r => console.log(r))
@@ -127,26 +126,23 @@ const copyArticle = () => {
             message: "复制失败，内容为空"
         })
     }
-}
+}, 500)
 
 /**
  * 预览文章
  */
 const previewArticle = () => {
-    isShowDraw.value = true
-    parseContent()
+
 }
 
 /**
  * 发布文章
  */
 const publish = _.throttle(async () => {
-    // 解析内容
-    parseContent()
     // 上传文章内容
     const {data}: API.Result = await publishArticle({
         title: articleInfo.title,
-        content: articleInfo.content,
+        content: parseContent(articleInfo.content),
         cover: articleInfo.isLocalUpload ? articleInfo.coverUrl : articleInfo.onlineCoverUrl ? "Https://" + articleInfo.onlineCoverUrl : "",
         tagIds: articleInfo.tags?.join(",")
     })
@@ -158,13 +154,31 @@ const publish = _.throttle(async () => {
 }, 1000)
 
 /**
+ * 保存草稿
+ */
+const saveDraft = _.throttle(async () => {
+    // 上传文章内容
+    const {data}: API.Result = await saveDraftArticle({
+        title: articleInfo.title,
+        content: parseContent(articleInfo.content),
+        cover: articleInfo.isLocalUpload ? articleInfo.coverUrl : articleInfo.onlineCoverUrl ? "Https://" + articleInfo.onlineCoverUrl : "",
+        tagIds: articleInfo.tags?.join(",")
+    })
+    if (data) {
+        $router.push({
+            name: "home"
+        }).then(r => console.log(r))
+    }
+}, 500)
+
+/**
  * 解析文章内容
  */
-const parseContent = () => {
+const parseContent = (content: string | Delta) => {
     // 解析Delta
-    const converter = new QuillDeltaToHtmlConverter(articleInfo.content?.ops)
+    const converter = new QuillDeltaToHtmlConverter(content?.ops)
     // 解析成避免了XSS攻击的html字符串
-    articleInfo.content = DOMPurify.sanitize(converter.convert())
+    return DOMPurify.sanitize(converter.convert())
 }
 
 /**
@@ -183,7 +197,7 @@ const extractKeywords = () => {
         <div class="rich-text flex-[0.7] flex flex-col">
             <div class="top w-full h-[38px] md:h-[45px] lg:h-[50px] flex justify-between mb-[15px]">
                 <div
-                    class="title flex-[0.77] h-full border-[1px] border-[#d1d5db] bg-white flex-center px-[15px]">
+                    class="title flex-[0.65] h-full border-[1px] border-[#d1d5db] bg-white flex-center px-[15px]">
                     <input
                         placeholder="请输入文章标题"
                         class="w-full h-[70%] md:text-2xl outline-none font-semibold"
@@ -192,10 +206,10 @@ const extractKeywords = () => {
                         :maxlength="MAX_TITLE_LEN"
                     />
                 </div>
-                <div class="buttons flex justify-between flex-[0.22] h-full text-white md:text-xl">
+                <div class="buttons flex justify-between flex-[0.34] h-full text-white md:text-xl">
                     <button
                         class="
-                            w-1/2
+                            w-[35%]
                             h-full
                             rounded-md
                             bg-[#4485ba]
@@ -212,7 +226,7 @@ const extractKeywords = () => {
                     >
                         <button
                             class="
-                                w-[23%]
+                                w-[21%]
                                 h-full
                                 rounded-md
                             "
@@ -227,22 +241,32 @@ const extractKeywords = () => {
                             <i class="iconfont icon-preview_fill"></i>
                         </button>
                     </el-tooltip>
-                    <el-drawer v-model="isShowDraw" direction="rtl" class="text-[#000]">
-                        <template #header>
-                            <h5>文章预览</h5>
-                        </template>
-                        <template #default>
-                            <h1 class="title">标题：{{ articleInfo.title }}</h1>
-                            <div v-html="articleInfo.content"></div>
-                        </template>
-                    </el-drawer>
                     <el-tooltip
                         placement="top"
-                        content="复制原文（包含样式）"
+                        content="存为草稿"
                     >
                         <button
                             class="
-                                w-[23%]
+                                w-[21%]
+                                h-full
+                                rounded-md
+                                bg-[#4485ba]
+                                transition-all
+                                hover:bg-[#5d93bb]
+                                active:scale-95
+                            "
+                            @click="saveDraft"
+                        >
+                            <i class="iconfont icon-draft text-lg"></i>
+                        </button>
+                    </el-tooltip>
+                    <el-tooltip
+                        placement="top"
+                        content="复制原文"
+                    >
+                        <button
+                            class="
+                                w-[21%]
                                 h-full
                                 rounded-md
                                 bg-[#4485ba]
@@ -283,7 +307,7 @@ const extractKeywords = () => {
                 class="
                     upload-cover
                     hidden
-                    md:flex-[0.19]
+                    md:flex-[0.49]
                     md:flex
                     flex-col
                     xl:h-[220px]
@@ -369,26 +393,7 @@ const extractKeywords = () => {
                 </div>
             </div>
             <div
-                class="
-                    upload-cover
-                    flex-1
-                    md:flex-[0.79]
-                    flex
-                    flex-col
-                    bg-white
-                    border-[1px]
-                    border-[#d1d5db]
-                    mt-[20px]
-                "
-            >
-                <div class="words border-b-[1px] border-[#d1d5db] h-[40px] flex items-center justify-between px-[20px]">
-                    <span>推荐文章</span>
-                    <i class="iconfont icon-link hover:text-[#0094ff] cursor-pointer"></i>
-                </div>
-                <RecommendArticle/>
-            </div>
-            <div
-                class="article-tags hidden sm:block bg-white border-[1px] border-[#d1d5db] mt-[20px] ml-[10px] md:ml-0 w-[200px] xl:w-auto"
+                class="article-tags md:flex-[0.49] flex-1 xl:w-full bg-white border-[1px] border-[#d1d5db] mt-[20px] ml-[10px] md:ml-0 w-[200px]"
             >
                 <div
                     class="words border-b-[1px] border-[#d1d5db] h-[40px] flex items-center justify-between px-[10px] xl:px-[20px]">

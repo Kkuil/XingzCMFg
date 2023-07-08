@@ -17,3 +17,13 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* 滑块 */
+.diy-scroll-bar::-webkit-scrollbar-thumb {
+  background-color: red;
+}
+
+/* 轨道 */
+.diy-scroll-bar::-webkit-scrollbar-track {
+  background-color: #f2f2f2;
+}

@@ -147,14 +147,16 @@ const collectArticle = async (id: string) => {
                         hover:text-[#2589d4]
                         whitespace-nowrap
                     "
-                    v-for="tag in state.TagState.tags.tags" :key="tag.id"
+                    v-for="tag in state.TagState.tags.tags"
+                    :key="tag.id"
                     :data-id="tag.id"
                     :class="tag.id == articleInfo.tagId ? 'text-[#2589d4]' : ''"
                 >
                     {{ tag.tagName }}
                 </div>
             </div>
-            <div class="
+            <el-dropdown trigger="hover">
+                <div class="
                      ellipsis
                      flex
                      md:hidden
@@ -167,8 +169,21 @@ const collectArticle = async (id: string) => {
                      transition-[color]
                      hover:text-[#2589d4]
                 "
-            >...
-            </div>
+                >...
+                </div>
+                <template #dropdown>
+                    <el-dropdown-menu class="max-h-[500px] overflow-y-auto diy-scroll-bar">
+                        <el-dropdown-item
+                            v-for="tag in state.TagState.tags.tags"
+                            :key="tag.id"
+                            :data-id="tag.id"
+                            :class="tag.id == articleInfo.tagId ? 'text-[#2589d4]' : ''"
+                        >
+                            {{ tag.tagName }}
+                        </el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
         </div>
         <div class="category flex w-full h-[60px] border-t-[1px] py-[10px]">
             <div
@@ -241,6 +256,7 @@ const collectArticle = async (id: string) => {
                                                  class="hover:underline hover:text-[#5d93bb]" @click.stop>
                                         {{ article.username }}
                                     </router-link>
+                                    <i v-if="article.isVisited" class="iconfont icon-footprint ml-[10px]"></i>
                                 </div>
                                 <div class="tools flex">
                                     <div

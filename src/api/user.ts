@@ -7,12 +7,17 @@ import MD5 from "@/utils/MD5.ts"
  * @returns Promise<object>
  */
 export async function loginWithAccount({username, password}: API.AccountLoginParams): Promise<API.Result> {
+    const encodePwd = MD5.encode(password as string)
     return await request({
         url: "/user-login-account",
         method: "POST",
+        params: {
+            username,
+            password: encodePwd,
+        },
         data: {
             username,
-            password: MD5.encode(password as string),
+            password: encodePwd,
         }
     })
 }
@@ -107,5 +112,21 @@ export async function listUserBg(): Promise<API.Result> {
     return await request({
         url: "/user-bg",
         method: "GET"
+    })
+}
+
+/**
+ * @description 更新用户背景图
+ * @param id string
+ * @param url string
+ */
+export async function updateBg(id: string, url: string): Promise<API.Result> {
+    return await request({
+        url: "/user-bg",
+        method: "PUT",
+        params: {
+            id,
+            url
+        }
     })
 }

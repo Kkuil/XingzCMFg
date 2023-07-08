@@ -6,35 +6,15 @@ import {
     Promotion,
     Right,
 } from "@element-plus/icons-vue"
-import {state} from "@/store"
+import store, {state} from "@/store"
 import {reactive, ref, watch} from "vue"
 import {TOKEN_IN_HEADER_KEY} from "@/constant/auth.ts";
-import Navigation from "@/components/Navigation/index.vue"
 
 const $router = useRouter()
 const $route = useRoute()
 
 const navigation = reactive([
-    {name: "主页", path: "/xingz-cm"},
-    {
-        name: "互动区",
-        isShowSelect: false,
-        children: [
-            {name: "问答区", path: "/xingz-cm/question-answer-area"},
-            {name: "自习室", path: "/xingz-cm/study-room"},
-            {name: "聊天室", path: "/xingz-cm/chat-room"},
-        ]
-    },
-    {
-        name: "休息区",
-        isShowSelect: false,
-        children: [
-            {name: "俄罗斯方块", path: "/xingz-cm/tetris"},
-            {name: "贪吃蛇", path: "/xingz-cm/greedy-snake"},
-        ]
-    },
-    {name: "ChatGPT", path: "/xingz-cm/chat-gpt"},
-    {name: "会员", path: "/xingz-cm/vip"}
+    {name: "主页", path: "/xingz-cm"}
 ])
 
 // 是否登录
@@ -57,11 +37,11 @@ watch(() => $route, (route) => {
     deep: true
 })
 
-watch(() => state.UserAuthState.userInfo.userInfo, (value) => {
-    isLogin.value = !!state.UserAuthState.userInfo.userInfo?.id
+store.useUserAuthStore.$subscribe((mutation, state) => {
+    isLogin.value = !!state.userInfo?.id
 }, {
-    immediate: true,
-    deep: true
+    deep: true,
+    immediate: true
 })
 
 const toggleShowSelect = (index: number, isShowSelect: boolean) => {
@@ -185,7 +165,6 @@ const goLogin = () => {
                       :content="isLogin ? '点击展开':  '登录查看更多权益'"
                       placement="bottom-end"
                   >
-                        <el-badge is-dot id="isInline" type="success">
                           <el-avatar
                               class="hidden md:flex cursor-pointer"
                               :title="state.UserAuthState.userInfo.userInfo?.username"
@@ -193,7 +172,6 @@ const goLogin = () => {
                           >
                               {{ isLogin ? '' : "user" }}
                           </el-avatar>
-                      </el-badge>
                   </el-tooltip>
             </span>
                 <template #dropdown>

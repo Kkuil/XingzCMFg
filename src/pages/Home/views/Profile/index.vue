@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import {useRoute, useRouter} from "vue-router"
-import {getUserById} from "@/api/user.ts";
-import {ref} from "vue";
+import {getUserById, updateBg} from "@/api/user.ts";
+import {nextTick, onMounted, ref, watch} from "vue";
 import {actions, state} from "@/store";
 import moment from "moment/moment";
 import getPropByEventDelegation from "@/utils/getPropByEventDelegation.ts";
 import {ElMessageBox} from "element-plus";
+import {useShowImgPreview} from "@/hooks/useShowImgPreview";
+import {listArticlesWithUserId, listVisitedArticles} from "@/api/article.ts";
+import {ARTICLE_STATUS} from "@/constant/article.ts";
 
 const $router = useRouter();
 const $route = useRoute();
@@ -26,16 +29,31 @@ type UserInfo = {
     isSelf?: boolean;
 }
 
+type ActiveType = {
+    activeStatusId: number,
+}
+
 // 用户信息
 const userInfo = ref<UserInfo>({});
-// 当前激活的分类
-const activeCate = ref<string>("published");
+// 浏览过的文章
+const visitedArticles = ref<{ id: string, title: string }[]>([])
+// 当前激活信息
+const activeInfo = ref<ActiveType>({
+    activeStatusId: 1,
+});
+// 当前分页信息
+const pageInfo = ref<{ current: number, pageSize: number, list: ARTICLE.ArticleItem[], total: number }>({
+    current: 1,
+    pageSize: 10,
+    list: [],
+    total: 0
+})
 // 当前布局方式
 const layoutType = ref<string>("col");
 // 文章
 const articleInfo = ref<{ isLoadingArticle: boolean, articles: ARTICLE.ArticleItem[] }>({
-    isLoadingArticle: true,
-    articles: [{}]
+    isLoadingArticle: false,
+    articles: []
 });
 // 是否显示更改背景图抽屉
 const isShowChangeBgCoverDrawer = ref<boolean>(false);
@@ -43,21 +61,79 @@ const isShowChangeBgCoverDrawer = ref<boolean>(false);
 const previewBgCoverUrl = ref<string>("");
 
 // 初始化个人信息
-(async () => {
+(async function () {
     const result: API.Result = await getUserById($route.params.userId as string)
     if (result.data) {
         userInfo.value = result.data
     }
 })();
 
+watch(() => userInfo, async () => {
+    await getVisitedArticles()
+    await getArticlesWithUserId()
+    initStatus()
+}, {
+    deep: true
+})
+
+watch(() => activeInfo, async () => {
+    await getArticlesWithUserId()
+}, {
+    deep: true
+})
+
+watch(() => $route, () => {
+    initStatus()
+})
+
+const initStatus = () => {
+    const status = $route.query.status
+    for (const index in ARTICLE_STATUS) {
+        if (ARTICLE_STATUS[index] === status) {
+            activeInfo.value.activeStatusId = parseInt(index as string)
+        }
+    }
+}
+
+// 获取用户浏览过的文章
+const getVisitedArticles = async () => {
+    const result: API.Result = await listVisitedArticles(userInfo.value.id as string)
+    if (result.data) {
+        visitedArticles.value = result.data as { id: string, title: string }[]
+    }
+}
+
+// 获取用户动态信息
+const getArticlesWithUserId = async () => {
+    const result: API.Result = await listArticlesWithUserId({
+        userId: userInfo.value.id,
+        statusId: activeInfo.value.activeStatusId,
+        current: pageInfo.value.current,
+        pageSize: pageInfo.value.pageSize,
+    })
+    if (result.data) {
+        pageInfo.value = {
+            current: result.data.current,
+            pageSize: result.data.pageSize,
+            // 当前文章信息
+            list: result.data.list as ARTICLE.ArticleItem[],
+            total: result.data.total
+        }
+    }
+}
+
 // 取消更改背景图
 const cancelChange = () => {
-
+    isShowChangeBgCoverDrawer.value = false
 }
 
 // 确认更改背景图
-const confirmChange = () => {
-
+const confirmChange = async () => {
+    // 更换背景图
+    const result: API.Result = await updateBg(userInfo.value.id as string, previewBgCoverUrl.value as string)
+    if (result.data) {
+        isShowChangeBgCoverDrawer.value = false
+    }
 }
 
 // 显示背景图选项
@@ -66,6 +142,14 @@ const showBgSelection = async () => {
     if (!state.UserBgState.userBg.userBg.length) {
         await actions.UserBgActions.setUserBgInfo()
     }
+}
+
+// 查看背景大图
+const checkLargeBgCover = () => {
+    useShowImgPreview({
+        urlList: userInfo.value.bgCover,
+        isClickOutsideClose: true
+    })
 }
 
 // 切换用户背景图
@@ -78,13 +162,41 @@ const changeUserBg = (event: Event) => {
 
 // 当关闭的时候
 const handleClose = (done: () => void) => {
-    ElMessageBox.confirm('')
-        .then(() => {
-            done()
+    console.log(userInfo.value.bgCover, previewBgCoverUrl.value)
+    if (previewBgCoverUrl.value !== "" && userInfo.value.bgCover !== previewBgCoverUrl.value) {
+        ElMessageBox.confirm("图片还未同步，是否同步数据后退出？", "是否退出", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消"
         })
-        .catch(() => {
-            // catch error
-        })
+            .then(async () => {
+                // 更换背景图
+                const result: API.Result = await updateBg(userInfo.value.id as string, previewBgCoverUrl.value as string)
+                done()
+            })
+            .catch((e) => {
+                // catch error
+                Promise.reject(e)
+                done()
+            })
+    } else {
+        done()
+    }
+    previewBgCoverUrl.value = ""
+}
+
+// 去文章详情页
+const gotoArticleDetail = (e: Event) => {
+    const articleId = getPropByEventDelegation(e, 'id')
+    if (articleId) {
+        $router.push({name: 'article-detail', params: {articleId}})
+    }
+}
+
+const computeCount = (value) => {
+    if (!value) {
+        return 0
+    }
+    return value > 999 ? "999+" : value
 }
 
 </script>
@@ -99,19 +211,22 @@ const handleClose = (done: () => void) => {
             </div>
         </el-tooltip>
     </div>
-    <div id="profile" class="w-screen h-full py-[10px] px-[15px] lg:px-[130px] flex justify-center">
-        <div class="container w-full flex justify-between relative">
+    <div id="profile" class="w-screen my-[10px] px-[15px] lg:px-[130px] flex justify-center">
+        <div class="container w-full flex justify-between">
             <main class="w-full lg:w-[64%] xl:w-[55%] h-full relative">
                 <div
                     id="topper"
                     class="w-full h-[310px] flex items-end mb-[10px]"
-                    :style="`background: url(${previewBgCoverUrl ? previewBgCoverUrl :  userInfo.bgCover}) no-repeat center/cover;`"
+                    :style="`background: url(${previewBgCoverUrl ? previewBgCoverUrl : userInfo.bgCover}) no-repeat center/cover;`"
                 >
-                    <div class="w-full h-[40%] px-[15px] flex items-center">
-                        <img :src="userInfo.avatar" id="avatar" class="w-[90px] h-[90px] rounded-full object-cover">
+                    <div class="w-full h-[40%] px-[15px] flex items-center bg-white">
+                        <img :src="userInfo.avatar" id="avatar" class="w-[90px] h-[90px] rounded-full object-cover"
+                             :alt="userInfo.username"/>
                         <div id="right" class="ml-[15px] text-white flex items-stretch">
                             <div id="user-right-top" class="flex-center">
-                                <span id="username" class="text-[25px] font-bold">{{ userInfo.username }}</span>
+                                <span id="username" class="text-[25px] font-bold text-[#000]">{{
+                                        userInfo.username
+                                    }}</span>
                                 <span id="level" class="ml-[7px] text-[#5d93bb] text-lg font-bold font-serif">Lv{{
                                         userInfo.level
                                     }}</span>
@@ -128,75 +243,86 @@ const handleClose = (done: () => void) => {
                             </div>
                         </div>
                     </div>
-                    <el-button type="primary" plain class="absolute right-[15px] top-[15px]"
-                               @click="showBgSelection">更换背景
-                    </el-button>
+                    <div
+                        class="btns absolute right-[15px] top-[15px]"
+                    >
+                        <el-button
+                            type="primary"
+                            plain
+                            @click="showBgSelection"
+                            v-if="userInfo.isSelf"
+                        >更换背景
+                        </el-button>
+                        <el-button
+                            type="primary"
+                            plain
+                            @click="checkLargeBgCover"
+                        >查看大图
+                        </el-button>
+                    </div>
                 </div>
                 <div id="dynamic" class="w-full bg-white">
                     <nav id="dynamic-nav" class="w-full h-[50px] flex border-b-[1px] relative">
                         <div
                             class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'published' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
+                            :style="activeInfo.activeStatusId === 1 ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
                             @click="() => {
-                                activeCate = 'published'
-                                $router.push('?cate=published')
+                                activeInfo.activeStatusId = 1
+                                $router.push(`?status=${ARTICLE_STATUS[activeInfo.activeStatusId]}`)
                             }"
                         >
-                            已发布
+                            全部
                         </div>
                         <div
                             class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'hot' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
+                            :style="activeInfo.activeStatusId === 0 ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
                             @click="() => {
-                                activeCate = 'hot'
-                                $router.push('?cate=hot')
+                                activeInfo.activeStatusId = 0
+                                $router.push(`?status=${ARTICLE_STATUS[activeInfo.activeStatusId]}`)
                             }"
+                            v-if="userInfo.isSelf"
                         >
-                            热门
+                            未审核
                         </div>
                         <div
                             class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'new' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
+                            :style="activeInfo.activeStatusId === 2 ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
                             @click="() => {
-                                activeCate = 'new'
-                                $router.push('?cate=new')
+                                activeInfo.activeStatusId = 2
+                                $router.push(`?status=${ARTICLE_STATUS[activeInfo.activeStatusId]}`)
                             }"
-                        >
-                            最新
-                        </div>
-                        <div
-                            class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'reviewing' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
-                            @click="() => {
-                                activeCate = 'reviewing'
-                                $router.push('?cate=reviewing')
-                            }"
-                        >
-                            审核中
-                        </div>
-                        <div
-                            class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'draft' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
-                            @click="() => {
-                                activeCate = 'draft'
-                                $router.push('?cate=draft')
-                            }"
+                            v-if="userInfo.isSelf"
                         >
                             草稿
                         </div>
                         <div
                             class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
-                            :style="activeCate === 'undercarriage' ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
+                            :style="activeInfo.activeStatusId === 3 ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
                             @click="() => {
-                                activeCate = 'undercarriage'
-                                $router.push('?cate=undercarriage')
+                                activeInfo.activeStatusId = 3
+                                $router.push(`?status=${ARTICLE_STATUS[activeInfo.activeStatusId]}`)
                             }"
+                            v-if="userInfo.isSelf"
+                        >
+                            已驳回
+                        </div>
+                        <div
+                            class="h-full flex-center px-[10px] text-sm hover:text-[#5d93bb] cursor-pointer border-b-[3px] border-transparent"
+                            :style="activeInfo.activeStatusId === 4 ? 'border-color: #5d93bb !important; color: #5d93bb;' : ''"
+                            @click="() => {
+                                activeInfo.activeStatusId = 4
+                                $router.push(`?status=${ARTICLE_STATUS[activeInfo.activeStatusId]}`)
+                            }"
+                            v-if="userInfo.isSelf"
                         >
                             已下架
                         </div>
                     </nav>
-                    <div id="tools" class="w-full h-[35px] px-[15px] text-[13px] flex items-center justify-between"
-                         v-if="articleInfo.articles.length">
+                    <div
+                        id="tools"
+                        class="w-full h-[35px] px-[15px] text-[13px] flex items-center justify-between border-b-[1px]"
+                        v-if="pageInfo.list.length"
+                    >
                         <div id="sort-by-time" class="cursor-pointer">按时间排序</div>
                         <i
                             class="iconfont text-[25px] cursor-pointer rounded-[5px] hover:bg-[#ccc] w-[25px] h-[25px] flex-center"
@@ -204,183 +330,169 @@ const handleClose = (done: () => void) => {
                             @click="layoutType === 'col' ? layoutType = 'row' : layoutType = 'col'"
                         ></i>
                     </div>
-                    <div class="articles py-[10px] min-h-[210px]">
-                        <el-skeleton
-                            :count="3"
-                            animated :loading="articleInfo.isLoadingArticle"
-                            v-if="articleInfo.articles.length"
-                            class="flex justify-between flex-wrap"
-                            :class="`flex-${layoutType === 'col' ? 'row' : 'col'}`"
-                        >
-                            <template #default>
+                    <el-empty class="w-full h-full" description="什么都没有" v-else/>
+                    <el-skeleton
+                        :count="3"
+                        animated
+                        :loading="articleInfo.isLoadingArticle"
+                        id="articles"
+                    >
+                        <template #default>
+                            <div
+                                @click="gotoArticleDetail"
+                                class="flex flex-wrap  py-[10px] min-h-[175px] px-[5px]"
+                                :class="`flex-${layoutType === 'col' ? 'row' : 'col justify-between'}`"
+                                v-if="pageInfo.list.length"
+                            >
                                 <div
-                                    class="w-full h-[200px] relative bg-white mb-4 flex-center p-[15px] cursor-pointer transition-all hover:bg-[#fafafa]"
-                                    v-for="article in articleInfo.articles"
-                                    :key="article.id"
+                                    class="mb-[10px] px-[15px] flex-center cursor-pointer rounded-[5px] hover:bg-[#e6e6e6]"
+                                    :class="`${layoutType === 'col' ? 'flex-col w-[20%] h-[150px]' : 'flex-row flex-1 py-[8px]'}`"
+                                    v-for="article in pageInfo.list"
+                                    :key="article"
                                     :data-id="article.id"
-                                    v-slide-in
-                                    title="点击阅读文章"
                                 >
                                     <img
-                                        src="https://w.wallhaven.cc/full/zy/wallhaven-zyq3xg.png"
-                                        alt="Kkuil"
-                                        title="Kkuil"
-                                        class="w-[200px] h-full object-cover hidden lg:block"
+                                        :src="article.cover"
+                                        class="object-cover"
+                                        :class="layoutType === 'col' ? 'w-[100px] h-[100px] mt-[5px]' : 'w-[100px] h-[120px]'"
+                                        :alt="article.title"
+                                        :title="article.title"
                                     />
-                                    <div class="main m-0 lg:ml-[20px] flex-1 h-full flex flex-col justify-between">
-                                        <h1 class="
-                                                title
-                                                max-w-full
-                                                overflow-ellipsis
-                                                line-clamp-1
-                                                break-all
-                                                font-semibold
-                                                text-[20px]
-                                                lg:text-[25px]
-                                                leading-[45px]
-                                                hover:text-[#0094ff]
-                                                hover:underline
-                                            "
+                                    <main
+                                        class="main h-auto"
+                                        :class="layoutType === 'col' ? 'mt-[5px] h-[150px] mb-[5px]' : 'ml-[10px] h-[120px]'"
+                                    >
+                                        <h1
+                                            class="title font-bold overflow-hidden overflow-ellipsis"
+                                            :class="layoutType === 'col' ? 'max-w-[100px]' : 'max-w-[150px]'"
                                         >
                                             {{ article.title }}
                                         </h1>
                                         <div
-                                            class="content w-full overflow-ellipsis overflow-hidden text-sm lg:text-md line-clamp-6 md:line-clamp-4"
-                                            v-dompurify-html="article.content"
+                                            class="content text-[13px] overflow-hidden overflow-ellipsis"
+                                            :class="layoutType === 'col' ? 'w-[100px] line-clamp-2' : 'line-clamp-4'"
                                         >
+                                            {{ article.content }}
                                         </div>
                                         <div
-                                            class="article-info hidden md:flex justify-between items-center w-full text-[#ccc] mt-[10px]">
-                                            <div class="author text-sm">
-                                                <span>作者：</span>
-                                                <router-link :to="`/xingz-cm/profile/${article.id}`"
-                                                             class="hover:underline hover:text-[#5d93bb]" @click.stop>
-                                                    {{ article.username }}
-                                                </router-link>
-                                            </div>
-                                            <div class="tools flex">
-                                                <div
-                                                    class="like ml-[15px] transition-[color] hover:text-[#0094ff] flex-center"
-                                                    :class="article.isLiked ? 'text-[#1da0fe]' : ''"
-                                                    @click.stop="likeArticle(article.id as string)"
-                                                    :title="article.isLiked ? '取消点赞': '点赞'"
-                                                >
-                                                    <i class="iconfont icon-thumb-up mr-[5px] text-xl"></i>
-                                                    <span
-                                                        class="text-sm">{{
-                                                            computeCount(article.likedCount)
-                                                        }}</span>
-                                                </div>
-                                                <div
-                                                    class="collect ml-[15px] transition-[color] hover:text-yellow-400 flex-center"
-                                                    :class="article.isCollected ? 'text-yellow-400': ''"
-                                                    @click.stop="collectArticle(article.id as string)"
-                                                    :title="article.isLiked ? '取消收藏': '收藏'"
-                                                >
-                                                    <i class="iconfont icon-collection mr-[5px] text-xl"></i>
-                                                    <span class="text-sm">{{
-                                                            computeCount(article.collectedCount)
-                                                        }}</span>
-                                                </div>
-                                                <div
-                                                    class="comment ml-[15px] transition-[color] hover:text-[#000] flex-center">
-                                                    <i class="iconfont icon-comment_light mr-[5px] text-xl"></i>
-                                                    <span
-                                                        class="text-sm">{{
-                                                            computeCount(article.commentCount)
-                                                        }}</span>
-                                                </div>
-                                                <div class="publishTime ml-[15px] flex-center">
-                                                    <i class="iconfont icon-clock mr-[5px] text-md"></i>
-                                                    <span class="text-sm">发表于：{{
-                                                            moment(article.createdTime).format('YYYY-MM-DD')
-                                                        }}</span>
-                                                </div>
-                                                <el-dropdown class="ml-[25px] flex-center">
-                                            <span class="el-dropdown-link font-bold text-lg">
-                                              ...
+                                            class="tools flex text-xs mt-[3px]"
+                                            :class="layoutType === 'col' ? '' : 'items-center justify-between'"
+                                        >
+                                            <span
+                                                class="text-[#0094ff]"
+                                                :class="layoutType === 'col' ? 'hidden' : ''"
+                                            >
+                                                发布于：{{ moment(article.createdTime).format("YYYY-MM-DD") }}
                                             </span>
-                                                    <template #dropdown>
-                                                        <el-dropdown-menu>
-                                                            <el-dropdown-item>
-                                                                <i class="iconfont icon-jubao"></i>
-                                                                <span>举报</span>
-                                                            </el-dropdown-item>
-                                                        </el-dropdown-menu>
-                                                    </template>
-                                                </el-dropdown>
+                                            <div
+                                                class="flex text-xs"
+                                            >
+                                                <div class="like transition-[color] flex-center">
+                                                    <i class="iconfont icon-thumb-up mr-[2px]"></i>
+                                                    <span>{{ computeCount(article.likedCount) }}</span>
+                                                </div>
+                                                <div class="collect transition-[color] flex-center ml-[10px]">
+                                                    <i class="iconfont icon-collection mr-[2px]"></i>
+                                                    <span>{{ computeCount(article.collectedCount) }}</span>
+                                                </div>
+                                                <div class="comment transition-[color] flex-center ml-[10px]">
+                                                    <i class="iconfont icon-comment_light mr-[2px]"></i>
+                                                    <span>{{ computeCount(article.commentCount) }}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                            <template #template>
-                                <div
-                                    class="bg-white mb-[10px] px-[15px] flex items-center justify-between"
-                                    :class="`${layoutType === 'col' ? 'flex-col flex-[0.33] h-[150px]' : 'flex-row flex-1 h-full'}`"
-                                >
-                                    <el-skeleton-item
-                                        variant="image"
-                                        id="template-img"
-                                        :style="layoutType === 'col' ? 'width: 100%; height: 100px' : 'width: 150px; height: 150px'"
-                                    />
-                                    <main class="main flex-1 w-full"
-                                          :class="layoutType === 'col' ? 'mt-[5px]' : 'ml-[20px]'">
-                                        <div class="title w-1/2">
-                                            <el-skeleton-item/>
-                                        </div>
-                                        <div class="content w-full">
-                                            <el-skeleton-item v-for="i in 5" :key="i"/>
                                         </div>
                                     </main>
                                 </div>
-                            </template>
-                        </el-skeleton>
-                        <el-empty class="w-full h-full" description="什么都没有" v-else/>
-                    </div>
+                                <el-pagination
+                                    background
+                                    layout="prev, pager, next"
+                                    small
+                                    :total="pageInfo.total"
+                                    v-model:current-page="pageInfo.current"
+                                    :default-current-page="1"
+                                    v-model:page-size="pageInfo.pageSize"
+                                    class="w-full my-[5px] flex-center"
+                                    :hide-on-single-page="true"
+                                    @currentChange="async (current) => {
+                                        pageInfo.current = current
+                                        await getArticlesWithUserId()
+                                    }"
+                                />
+                            </div>
+                        </template>
+                        <template #template>
+                            <div
+                                class="bg-white mb-[10px] px-[15px] flex items-center justify-between"
+                                :class="`${layoutType === 'col' ? 'flex-col flex-[0.33] h-[150px]' : 'flex-row flex-1 h-full'}`"
+                            >
+                                <el-skeleton-item
+                                    variant="image"
+                                    id="template-img"
+                                    :style="layoutType === 'col' ? 'width: 100%; height: 100px' : 'width: 150px; height: 150px'"
+                                />
+                                <main class="main flex-1 w-full"
+                                      :class="layoutType === 'col' ? 'mt-[5px]' : 'ml-[20px]'">
+                                    <div class="title w-1/2">
+                                        <el-skeleton-item/>
+                                    </div>
+                                    <div class="content w-full">
+                                        <el-skeleton-item v-for="i in 5" :key="i"/>
+                                    </div>
+                                </main>
+                            </div>
+                        </template>
+                    </el-skeleton>
                 </div>
             </main>
-            <aside class="hidden lg:flex w-[35%] xl:w-[44%] flex-col xl:flex-row justify-between">
-                <aside class="w-full xl:w-[49%] h-auto sticky top-[10px] right-0">
+            <aside
+                class="hidden lg:flex w-[35%] xl:w-[44%] flex-col xl:flex-row justify-between sticky top-[10px] right-0"
+            >
+                <aside class="w-full xl:w-[49%] h-auto">
                     <div id="user-base-info" class="bg-white">
                         <div
-                            class="topper font-serif border-b-[1px] border-[#000] h-[35px] text-[13px] leading-[35px] px-[10px] bg-[#5d93bb] text-white font-bold"
+                            class="topper font-serif h-[35px] text-[13px] leading-[35px] px-[10px] bg-[#5d93bb] text-white font-bold"
                         >
                             基本资料
                         </div>
-                        <div class="info p-[8px] font-sans">
+                        <div class="info p-[8px] font-serif text-sm">
                             <h3 class="mb-[5px]">用户名：{{ userInfo.username }}</h3>
                             <h3 class="mb-[5px]">性别：{{ userInfo.gender }}</h3>
-                            <h3 class="mb-[5px]">生日：{{ moment(userInfo.birthday).format("YYYY-MM-DD") }}</h3>
+                            <h3 class="mb-[5px]">生日：{{ moment(userInfo.birthday).format("YYYY-MM-DD") ?? "-" }}</h3>
                             <h3 class="mb-[5px]">电话：{{ userInfo.phone }}</h3>
                             <h3 class="mb-[5px]">邮箱：{{ userInfo.email }}</h3>
-                            <h3 class="mb-[5px]">标签：{{ userInfo.tags }}</h3>
+                            <h3 class="mb-[5px]">
+                                标签：
+                                <el-tag v-for="tag in userInfo.tags" :key="tag" color="#5d93bb" class="text-white">
+                                    # {{ tag }}
+                                </el-tag>
+                            </h3>
                             <h3 class="mb-[5px]">等级：{{ userInfo.level }}</h3>
                         </div>
                     </div>
                     <div id="recent-browser" class="bg-white mt-[10px]">
                         <div
-                            class="topper font-serif border-b-[1px] border-[#000] h-[35px] text-[13px] leading-[35px] px-[10px] bg-[#5d93bb] text-white font-bold"
+                            class="topper font-serif h-[35px] text-[13px] leading-[35px] px-[10px] bg-[#5d93bb] text-white font-bold"
                         >
                             最近浏览
                         </div>
                         <div class="browser-articles p-[8px] font-sans">
                             <div
                                 class="h-[30px] flex items-center justify-between transition-all cursor-pointer hover:bg-[#aeddff] rounded-md px-[5px]"
-                                v-for="article in 5"
+                                v-for="article in visitedArticles"
                                 :key="article"
-                                @click="$router.push({ name: 'article-detail', params: { articleId: 1 } })"
+                                @click="$router.push({ name: 'article-detail', params: { articleId: article.id } })"
                                 title="点击查看文章详情"
+                                v-if="visitedArticles.length"
 
                             >
-                                12315615156
+                                <span>{{ article.title }}</span>
                             </div>
-                            <!--                        <el-empty description="这人很懒，啥都没看" />-->
+                            <el-empty description="这人很懒，啥都没看" v-else/>
                         </div>
                     </div>
                 </aside>
                 <aside
-                    class="w-full xl:w-[49%] h-full sticky top-[10px] right-0 text-[#848587] text-[13px] mt-[10px] xl:m-0">
+                    class="w-full xl:w-[49%] h-full text-[#848587] text-[13px] mt-[10px] xl:m-0">
                     <div class="first">
                     <span>
                         <i class="iconfont icon-user"></i>
@@ -469,4 +581,5 @@ const handleClose = (done: () => void) => {
         background-position: bottom;
     }
 }
+
 </style>
