@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {reactive, ref, nextTick, watch, onUpdated, onMounted} from "vue"
+import {onMounted, reactive, ref} from "vue"
 import {Plus} from "@element-plus/icons-vue"
-import {ElImageViewer, ElMessage, UploadUserFile} from "element-plus";
+import {ElImageViewer, ElInput, ElMessage, UploadUserFile} from "element-plus";
 import {Delta} from "@vueup/vue-quill"
-import {state, actions} from "@/store"
+import {actions, state} from "@/store"
 // Delta转html转换器
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html"
 // 富文本转html，过滤潜在XSS攻击内容库
@@ -11,9 +11,6 @@ import DOMPurify from "dompurify"
 import {publishArticle, saveDraftArticle, uploadCover} from "@/api/article.ts"
 import _ from "lodash"
 import {useRouter} from "vue-router"
-import RecommendArticle from "@/components/RecommendArticle/index.vue"
-
-import {ElInput} from "element-plus"
 // 关键词提取
 // import nodejieba from "nodejieba"
 
@@ -132,7 +129,7 @@ const copyArticle = _.throttle(() => {
  * 预览文章
  */
 const previewArticle = () => {
-
+    ElMessage.warning("开发中...")
 }
 
 /**
@@ -147,6 +144,7 @@ const publish = _.throttle(async () => {
         tagIds: articleInfo.tags?.join(",")
     })
     if (data) {
+        ElMessage.success("发布成功")
         $router.push({
             name: "home"
         }).then(r => console.log(r))
@@ -398,7 +396,7 @@ const extractKeywords = () => {
                 <div
                     class="words border-b-[1px] border-[#d1d5db] h-[40px] flex items-center justify-between px-[10px] xl:px-[20px]">
                     <span>文章标签</span>
-                    <el-button type="primary" round size="small" @click="extractKeywords">提取关键词</el-button>
+                    <!--                    <el-button type="primary" round size="small" @click="extractKeywords">提取关键词</el-button>-->
                 </div>
                 <div class="container w-full px-[10px] xl:px-[20px] py-[10px]">
                     <el-check-tag

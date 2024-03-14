@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import {reactive, watch} from "vue"
-import {state, actions} from "@/store"
+import {actions, state} from "@/store"
 import {Bottom} from "@element-plus/icons-vue"
 import {useRoute, useRouter} from "vue-router"
 import moment from "moment"
 import {collect, like} from "@/api/article.ts";
 import getPropByEventDelegation from "@/utils/getPropByEventDelegation.ts";
+import {ElMessage} from "element-plus";
 
 const $router = useRouter();
 const $route = useRoute();
@@ -101,12 +102,17 @@ const computeCount = (value) => {
  */
 const likeArticle = async (id: string) => {
     const res: API.Result = await like(id)
-    state.ArticleState.articles.articles?.map((article) => {
-        if (article.id === id) {
-            article.isLiked = res.data as boolean
-            res.data ? article.likedCount++ : article.likedCount--
-        }
-    })
+    if (res.data) {
+        state.ArticleState.articles.articles?.map((article) => {
+            if (article.id === id) {
+                article.isLiked = res.data as boolean
+                res.data ? article.likedCount++ : article.likedCount--
+            }
+        })
+    } else {
+        ElMessage.error("请先登录")
+        $router.push("/login")
+    }
 }
 
 /**

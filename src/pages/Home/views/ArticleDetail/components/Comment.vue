@@ -476,7 +476,7 @@ const computedRemainShowSubComment = (comment: ArticleComment.CommentDetailInfoV
                                         ></i>
                                     </div>
                                 </div>
-                                <div class="comment-reply-input flex py-[10px] border-t-[1px]"
+                                <div class="comment-reply-input py-[10px] border-t-[1px] flex-center"
                                      v-if="curReplyId === subComment.id">
                                     <el-input
                                         placeholder="留下你宝贵的评论吧！"
@@ -588,7 +588,7 @@ const computedRemainShowSubComment = (comment: ArticleComment.CommentDetailInfoV
                     >
                         加载更多
                     </div>
-                    <div v-else class="not-more flex-center my-[5px] text-[#ccc] text-sm">
+                    <div v-else class="not-more flex-center text-[#ccc] text-sm h-[45px]">
                         已经滑到底了，没有更多了~
                     </div>
                 </div>

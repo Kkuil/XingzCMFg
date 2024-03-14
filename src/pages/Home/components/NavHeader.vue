@@ -82,50 +82,6 @@ const goLogin = () => {
                 @toggleShowSelect="toggleShowSelect"
             />
         </div>
-        <!-- 搜索 -->
-        <div class="
-                search
-                w-[250px]
-                2xl:w-[300px]
-                h-[35px]
-                rounded-md
-                overflow-hidden
-                transition-all
-                border-[1px]
-                border-[#ccc]
-                xl:ml-[30px]
-                2xl:ml-[100px]
-                cursor-pointer
-                hover:shadow-[#5d93bb]
-                md:hidden
-                xl:flex
-                sm:flex
-                hidden
-            "
-        >
-            <div class="search-input relative flex-[75%] h-full flex items-center px-4">
-                <el-icon>
-                    <Search/>
-                </el-icon>
-                <input
-                    type="text"
-                    placeholder="请输入你要搜索的内容"
-                    v-model="searchData"
-                    class="ml-2 outline-0 bg-opacity-0"
-                />
-                <el-icon
-                    class="absolute right-3 top-1/2 -translate-y-1/2 ml-1 hover:text-[#5d93bb]"
-                    :class="searchData ? '' : 'hidden'"
-                    @click="searchData = ''"
-                >
-                    <CircleClose/>
-                </el-icon>
-            </div>
-            <div
-                class="search-btn hidden flex-[25%] h-full 2xl:flex justify-center items-center font-semibold bg-[#5d93bb] text-[#fefefe]">
-                搜索
-            </div>
-        </div>
         <!-- 写文章 -->
         <div
             class="

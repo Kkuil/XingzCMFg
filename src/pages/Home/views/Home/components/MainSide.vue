@@ -18,16 +18,6 @@ const authorInfo = [
         name: "QQ",
         link: "https://user.qzone.qq.com/3024067144/infocenter",
     },
-    {
-        icon: "weixin",
-        name: "微信",
-        link: "",
-    },
-    {
-        icon: "weibo-fill",
-        name: "微博",
-        link: "",
-    },
 ];
 
 const userRankInfos = ref<USER_RANK.UserRankInfo[]>([]);
@@ -90,7 +80,6 @@ const gotoActivityDetail = (activityId: string) => {
             <div
                 class="w-full h-[45px] border-b-[1px] px-[10px] text-sm flex justify-between items-center bg-[#e8dca0]">
                 <span class="font-serif font-bold">星知等级榜单</span>
-                <a class="text-[12px] underline cursor-pointer">查看全部榜单</a>
             </div>
             <div class="rank-info flex-1 flex flex-col">
                 <div class="top-three flex-[0.60] flex border-b-[1px]">
@@ -175,29 +164,6 @@ const gotoActivityDetail = (activityId: string) => {
                 </div>
             </div>
         </div>
-        <div class="today-activities w-full flex-[0.3] bg-white mt-[15px]">
-            <div
-                class="w-full h-[45px] border-b-[1px] px-[10px] text-sm flex justify-between items-center bg-[#5d93bb] font-serif">
-                <span class="font-bold text-white">每日活动</span>
-                <span class="hover:text-white cursor-pointer text-xs">更多活动</span>
-            </div>
-            <div class="activities p-[8px] font-sans">
-                <div
-                    class="h-[30px] flex items-center justify-between transition-all cursor-pointer hover:bg-[#aeddff] rounded-md px-[5px]"
-                    v-for="activity in activities"
-                    :key="activity"
-                    title="点击查看活动详情"
-                    v-if="true"
-                    @click="gotoActivityDetail(activity.id)"
-                >
-                    <span>{{ activity.title }}</span>
-                </div>
-                <div class="empty w-full min-h-[200px] flex-center flex-col" v-else>
-                    <SvgIcon icon-class="firework" class="w-[100px] h-[100px]"/>
-                    <div class="description mt-[10px]">今日任务已完成，明天再来吧！</div>
-                </div>
-            </div>
-        </div>
         <aside
             class="h-full text-[#848587] text-[13px] mt-[10px] mt-[10px]">
             <div class="first">
@@ -226,9 +192,9 @@ const gotoActivityDetail = (activityId: string) => {
             </div>
             <div class="third">
                 <i class="iconfont icon-copyright"></i>
-                2023 前端菜K |
+                2024 前端菜K |
                 <a class="text-[#0094ff]" href="https://github.com/Kkuil/XingzFg" target="_blank">沪ICP备
-                    3024067144号-2</a>
+                    123456789号-2</a>
             </div>
         </aside>
     </div>

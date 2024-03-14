@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import {useRoute, useRouter} from "vue-router"
 import {h, ref, watch} from "vue"
-import {getArticleById, visit} from "@/api/article.ts"
+import {collect, getArticleById, like, visit} from "@/api/article.ts"
 import moment from "moment"
-import {like, collect} from "@/api/article.ts"
 import _ from "lodash"
 import {useDialog} from "@/hooks/useDialog"
 import Form from "@/components/Form/index.vue"
 import Comment from "./components/Comment.vue"
+import {ElMessage} from "element-plus";
+import {TOKEN_IN_HEADER_KEY} from "@/constant/auth.ts";
 
 const $route = useRoute()
 const $router = useRouter()
@@ -33,7 +34,10 @@ watch(() => $route, async (route) => {
 // 浏览过
 (async function () {
     // 浏览过
-    await visit($route.params.articleId as string)
+    const token = localStorage.getItem(TOKEN_IN_HEADER_KEY)
+    if (token) {
+        await visit($route.params.articleId as string)
+    }
 })();
 
 /**
@@ -55,6 +59,8 @@ const likeArticle = _.throttle(async () => {
         res = await like($route.params.articleId as string) as API.Result
     } catch (e) {
         dialogFormVisible.value = true
+        ElMessage.error("请先登录")
+        $router.push("/login")
     }
     article.value.articleDetailInfo.isLiked = res.data as boolean
     article.value.articleDetailInfo?.isLiked ? article.value.articleDetailInfo.likedCount++ : article.value.articleDetailInfo.likedCount--

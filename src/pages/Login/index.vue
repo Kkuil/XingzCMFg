@@ -21,6 +21,10 @@ const handleSubmit = async (e: Event) => {
         username: userInfo.username,
         password: userInfo.password
     })
+    setTimeout(() => {
+        $router.push("/")
+        location.reload()
+    }, 1000)
 }
 
 </script>
